@@ -14,6 +14,7 @@ class RegisterView extends GetView<RegisterController> {
           child: SingleChildScrollView(
             child: Column(
               children: [
+                const Icon(Icons.school_outlined, size: 40, color: Colors.blue),
                 Text("Quizzin", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue[900])),
                 const SizedBox(height: 40),
                 const Text("Create Account", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
