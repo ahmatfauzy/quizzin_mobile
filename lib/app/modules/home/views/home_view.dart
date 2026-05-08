@@ -395,7 +395,7 @@ class HomeView extends GetView<HomeController> {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  "You've mastered NLP chapters 1-3. Ready to try a mixed review quiz to reinforce your memory?",
+                  "Anda telah menguasai bab 1-3 NLP. Siap mencoba kuis ulasan campuran untuk memperkuat ingatan Anda?",
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.black54,
