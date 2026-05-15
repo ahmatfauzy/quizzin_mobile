@@ -15,9 +15,9 @@ class LoginView extends GetView<LoginController> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                const Icon(Icons.school_outlined, size: 40, color: Colors.blue),
-                Text("Quizzin", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue[900])),
-                const SizedBox(height: 40),
+                Image.asset('assets/images/logos/logo2.png', width: 100, height: 100, fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 24),
                 const Text("Welcome Back", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
                 const Text("Log in to continue your learning journey.", textAlign: TextAlign.center),
                 const SizedBox(height: 32),
