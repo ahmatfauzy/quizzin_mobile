@@ -15,6 +15,7 @@ abstract class Routes {
   static const PROFILE = _Paths.PROFILE;
   static const ALL_MATERIALS = _Paths.ALL_MATERIALS;
   static const FORGOT_PASSWORD = _Paths.FORGOT_PASSWORD;
+  static const FACE_REGISTRATION = _Paths.FACE_REGISTRATION;
 }
 
 abstract class _Paths {
@@ -31,4 +32,5 @@ abstract class _Paths {
   static const PROFILE = '/profile';
   static const ALL_MATERIALS = '/all-materials';
   static const FORGOT_PASSWORD = '/forgot-password';
+  static const FACE_REGISTRATION = '/face-registration';
 }

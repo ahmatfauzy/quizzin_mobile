@@ -5,41 +5,61 @@ class RegisterController extends GetxController {
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  
-  // State untuk form register manual
-  final isLoading = false.obs;
-  
-  // State khusus untuk tombol Google
-  final isGoogleLoading = false.obs;
+  final confirmPasswordController = TextEditingController();
 
-  void register() async {
-    if (nameController.text.isEmpty || emailController.text.isEmpty || passwordController.text.isEmpty) {
-      Get.snackbar('Error', 'Semua field harus diisi', snackPosition: SnackPosition.BOTTOM);
+  final isPasswordHidden = true.obs;
+  final isConfirmPasswordHidden = true.obs;
+  final isLoading = false.obs;
+
+  void togglePasswordVisibility() {
+    isPasswordHidden.value = !isPasswordHidden.value;
+  }
+
+  void toggleConfirmPasswordVisibility() {
+    isConfirmPasswordHidden.value = !isConfirmPasswordHidden.value;
+  }
+
+  void register() {
+    // Validasi dinonaktifkan sementara untuk kemudahan testing UI 
+    
+    /* // Kode validasi asli
+    final name = nameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text;
+    final confirmPassword = confirmPasswordController.text;
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+      Get.snackbar('Error', 'Semua kolom harus diisi!', backgroundColor: Colors.red.shade100, colorText: Colors.red.shade900, snackPosition: SnackPosition.BOTTOM);
       return;
     }
 
+    if (password != confirmPassword) {
+      Get.snackbar('Error', 'Password tidak cocok!', backgroundColor: Colors.red.shade100, colorText: Colors.red.shade900, snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+    */
+
+    // Simulasi Loading & Sukses (Langsung tereksekusi tanpa mengecek isi form)
     isLoading.value = true;
     
-    // Simulasi proses register ke server/Firebase
-    await Future.delayed(const Duration(seconds: 2));
-    
-    isLoading.value = false;
-    
-    Get.snackbar('Success', 'Akun berhasil dibuat!', snackPosition: SnackPosition.TOP);
-    Get.back(); // Kembali ke halaman login
+    // Waktu tunggu saya percepat menjadi 1 detik agar testing lebih cepat
+    Future.delayed(const Duration(seconds: 1), () {
+      isLoading.value = false;
+      
+      Get.snackbar(
+        'Simulasi UI', 'Bypass validasi aktif. Melanjutkan ke Setup Identity...',
+        backgroundColor: const Color(0xFF0056FF),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+      );
+
+      // --- NAVIGASI KE HALAMAN FACE REGISTRATION ---
+      Get.offNamed('/face-registration'); 
+    });
   }
 
-  // Fungsi baru untuk Register dengan Google
-  void registerWithGoogle() async {
-    isGoogleLoading.value = true;
-    
-    // Simulasi proses integrasi Google Sign-In
-    await Future.delayed(const Duration(seconds: 2));
-    
-    isGoogleLoading.value = false;
-    
-    Get.snackbar('Success', 'Berhasil mendaftar dengan akun Google!', snackPosition: SnackPosition.TOP);
-    Get.back();
+  void goToLogin() {
+    Get.back(); 
   }
 
   @override
@@ -47,6 +67,7 @@ class RegisterController extends GetxController {
     nameController.dispose();
     emailController.dispose();
     passwordController.dispose();
+    confirmPasswordController.dispose();
     super.onClose();
   }
 }
