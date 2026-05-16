@@ -1,9 +1,15 @@
 import 'package:get/get.dart';
 
+import '../modules/all_materials/bindings/all_materials_binding.dart';
+import '../modules/all_materials/views/all_materials_view.dart';
 import '../modules/chapter_details/bindings/chapter_details_binding.dart';
 import '../modules/chapter_details/views/chapter_details_view.dart';
 import '../modules/concept_map/bindings/concept_map_binding.dart';
 import '../modules/concept_map/views/concept_map_view.dart';
+import '../modules/face_registration/bindings/face_registration_binding.dart';
+import '../modules/face_registration/views/face_registration_view.dart';
+import '../modules/forgot_password/bindings/forgot_password_binding.dart';
+import '../modules/forgot_password/views/forgot_password_view.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
@@ -87,6 +93,21 @@ class AppPages {
       name: _Paths.PROFILE,
       page: () => const ProfileView(),
       binding: ProfileBinding(),
+    ),
+    GetPage(
+      name: _Paths.ALL_MATERIALS,
+      page: () => const AllMaterialsView(),
+      binding: AllMaterialsBinding(),
+    ),
+    GetPage(
+      name: _Paths.FORGOT_PASSWORD,
+      page: () => const ForgotPasswordView(),
+      binding: ForgotPasswordBinding(),
+    ),
+    GetPage(
+      name: _Paths.FACE_REGISTRATION,
+      page: () => const FaceRegistrationView(),
+      binding: FaceRegistrationBinding(),
     ),
   ];
 }

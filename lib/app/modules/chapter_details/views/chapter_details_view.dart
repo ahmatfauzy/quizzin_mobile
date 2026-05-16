@@ -21,7 +21,7 @@ class ChapterDetailsView extends GetView<ChapterDetailsController> {
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(radius: 16, backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11')),
+            child: CircleAvatar(radius: 16, backgroundImage: NetworkImage('https://static.tvtropes.org/pmwiki/pub/images/the_two_faces_of_squidward.png')),
           ),
         ],
       ),

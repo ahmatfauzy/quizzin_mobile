@@ -15,7 +15,7 @@ class QuizResultView extends GetView<QuizResultController> {
         automaticallyImplyLeading: false, // Sembunyikan tombol back bawaan
         title: Row(
           children: const [
-            CircleAvatar(radius: 14, backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11')),
+            CircleAvatar(radius: 14, backgroundImage: NetworkImage('https://static.tvtropes.org/pmwiki/pub/images/the_two_faces_of_squidward.png')),
             SizedBox(width: 12),
             Text('Learning Analytics', style: TextStyle(color: Color(0xFF1A365D), fontWeight: FontWeight.bold, fontSize: 16)),
           ],
