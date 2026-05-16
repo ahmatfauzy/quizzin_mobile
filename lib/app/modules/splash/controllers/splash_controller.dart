@@ -1,17 +1,29 @@
 import 'package:get/get.dart';
 
+import '../../../services/auth_service.dart';
+import '../../../services/api_service.dart';
+
 class SplashController extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    _navigateToLogin();
+    _checkAuth();
   }
 
-  void _navigateToLogin() {
-    // Simulasi inisialisasi aplikasi selama 3 detik
+  Future<void> _checkAuth() async {
+    final authService = Get.find<AuthService>();
+    final apiService = ApiService();
+
     Future.delayed(const Duration(seconds: 3), () {
-      // Ganti '/login' dengan Routes.LOGIN jika file app_routes.dart sudah di-import
-      Get.offAllNamed('/login'); 
+      if (authService.isLoggedIn) {
+        final token = authService.token;
+        if (token != null) {
+          apiService.setAuthToken(token);
+        }
+        Get.offAllNamed('/home');
+      } else {
+        Get.offAllNamed('/login');
+      }
     });
   }
 }

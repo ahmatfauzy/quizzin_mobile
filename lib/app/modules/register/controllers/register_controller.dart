@@ -1,5 +1,8 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import '../../../services/api_service.dart';
 
 class RegisterController extends GetxController {
   final nameController = TextEditingController();
@@ -11,6 +14,8 @@ class RegisterController extends GetxController {
   final isConfirmPasswordHidden = true.obs;
   final isLoading = false.obs;
 
+  final ApiService _apiService = ApiService();
+
   void togglePasswordVisibility() {
     isPasswordHidden.value = !isPasswordHidden.value;
   }
@@ -19,47 +24,66 @@ class RegisterController extends GetxController {
     isConfirmPasswordHidden.value = !isConfirmPasswordHidden.value;
   }
 
-  void register() {
-    // Validasi dinonaktifkan sementara untuk kemudahan testing UI 
-    
-    /* // Kode validasi asli
+  void register() async {
     final name = nameController.text.trim();
     final email = emailController.text.trim();
     final password = passwordController.text;
-    final confirmPassword = confirmPasswordController.text;
 
-    if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
-      Get.snackbar('Error', 'Semua kolom harus diisi!', backgroundColor: Colors.red.shade100, colorText: Colors.red.shade900, snackPosition: SnackPosition.BOTTOM);
-      return;
-    }
-
-    if (password != confirmPassword) {
-      Get.snackbar('Error', 'Password tidak cocok!', backgroundColor: Colors.red.shade100, colorText: Colors.red.shade900, snackPosition: SnackPosition.BOTTOM);
-      return;
-    }
-    */
-
-    // Simulasi Loading & Sukses (Langsung tereksekusi tanpa mengecek isi form)
-    isLoading.value = true;
-    
-    // Waktu tunggu saya percepat menjadi 1 detik agar testing lebih cepat
-    Future.delayed(const Duration(seconds: 1), () {
-      isLoading.value = false;
-      
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
       Get.snackbar(
-        'Simulasi UI', 'Bypass validasi aktif. Melanjutkan ke Setup Identity...',
+        'Error',
+        'Semua kolom harus diisi!',
+        backgroundColor: Colors.red.shade100,
+        colorText: Colors.red.shade900,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    isLoading.value = true;
+
+    try {
+      await _apiService.dio.post(
+        '/auth/register',
+        data: {
+          'full_name': name,
+          'email': email,
+          'password': password,
+        },
+      );
+
+      Get.snackbar(
+        'Registrasi Berhasil',
+        'Silakan cek email Anda untuk verifikasi akun.',
         backgroundColor: const Color(0xFF0056FF),
         colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
       );
 
-      // --- NAVIGASI KE HALAMAN FACE REGISTRATION ---
-      Get.offNamed('/face-registration'); 
-    });
+      Get.offNamed('/face-registration');
+    } on Exception catch (e) {
+      String message = 'Terjadi kesalahan, coba lagi';
+      if (e is DioException) {
+        final statusCode = e.response?.statusCode;
+        final detail = e.response?.data?['detail'];
+        if (statusCode == 400 && detail != null && detail is String) {
+          message = detail;
+        }
+      }
+      Get.snackbar(
+        'Gagal Registrasi',
+        message,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade100,
+        colorText: Colors.red.shade900,
+      );
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   void goToLogin() {
-    Get.back(); 
+    Get.back();
   }
 
   @override
