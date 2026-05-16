@@ -1,30 +1,59 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class HomeController extends GetxController {
-  // --- Data Profil & Progress ---
-  final userName = 'Bale'.obs;
-  final progress = 0.75.obs; // 75%
-  final knowledgePoints = '1,250'.obs;
-  final subjectsMastered = 12.obs;
+  final userName = 'Ahmat Saputra'.obs;
+  final streakDays = 5.obs;
+  final level = 12.obs;
+  final levelProgress = 0.75.obs;
+  final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  final weeklyActivityData = <double>[0.4, 0.7, 1.0, 0.3, 0.6, 0.1, 0.0].obs;
+  final selectedDayIndex = 2.obs; 
 
-  // --- Data Weekly Activity (Tinggi Bar Chart) ---
-  final List<Map<String, dynamic>> weeklyData = [
-    {'day': 'M', 'height': 40.0, 'isToday': false},
-    {'day': 'T', 'height': 70.0, 'isToday': false},
-    {'day': 'W', 'height': 90.0, 'isToday': true},
-    {'day': 'T', 'height': 30.0, 'isToday': false},
-    {'day': 'F', 'height': 50.0, 'isToday': false},
-  ];
-
-  // --- Data Recent Documents ---
-  final recentDocuments = [
+  final recentMaterials = <Map<String, dynamic>>[
     {
-      'title': 'Computer_Vision_Basics.pdf',
-      'meta': 'Uploaded 2 days ago • 14 pages',
+      'title': 'Computer Vision Chapter 4',
+      'type': 'PDF Document',
+      'theme': 'vision',
+      'progress': 0.6,
+      'time': '2h ago',
     },
     {
-      'title': 'SakuSelamat_Requirements.pdf',
-      'meta': 'Uploaded 5 days ago • 32 pages',
-    }
-  ];
+      'title': 'NLP Midterm Practice',
+      'type': 'PDF Document',
+      'theme': 'language',
+      'progress': 0.25,
+      'time': 'Yesterday',
+    },
+    {
+      'title': 'Advanced Machine Learning',
+      'type': 'PDF Document',
+      'theme': 'ml',
+      'progress': 1.0,
+      'time': '3d ago',
+    },
+  ].obs; 
+
+  void selectDay(int index) {
+    selectedDayIndex.value = index;
+  }
+
+  void openProfile() {
+    Get.toNamed('/profile');
+  }
+
+  void openMaterial() {
+    Get.toNamed('/chapter-details');
+  }
+
+  void addNewMaterial() {
+    Get.snackbar(
+      'Upload PDF', 
+      'Membuka file manager untuk memilih dokumen PDF...', 
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: const Color(0xFF0056FF),
+      colorText: Colors.white,
+      margin: const EdgeInsets.all(16),
+    );
+  }
 }

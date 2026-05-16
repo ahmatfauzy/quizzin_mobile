@@ -7,11 +7,11 @@ class ProfileController extends GetxController {
   final emailController = TextEditingController(text: 'digidaw@kampusbanjir.ac.id');
   final levelController = TextEditingController(text: 'Graduate / D4');
   final majorController = TextEditingController(text: 'Teknik Informatika');
-  final profilePicUrl = ''.obs;
+  final profilePicUrl = 'https://static.tvtropes.org/pmwiki/pub/images/the_two_faces_of_squidward.png'.obs;
 
   void updatePhoto() {
     // Simulasi ganti foto profil saat tombol diklik 
-    profilePicUrl.value = ''; 
+    profilePicUrl.value = 'https://static.tvtropes.org/pmwiki/pub/images/the_two_faces_of_squidward.png'; 
     Get.snackbar('Update Photo', 'Foto profil berhasil diubah!', snackPosition: SnackPosition.BOTTOM);
   }
 
