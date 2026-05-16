@@ -154,7 +154,7 @@ class HomeView extends GetView<HomeController> {
           ),
           const SizedBox(height: 32),
           
-          // Area Grafik Bar (Bar Chart)
+          // Area Grafik Bar (Bar Chart
           SizedBox(
             height: 140, // Tinggi keseluruhan area grafik
             child: Obx(() => Row(

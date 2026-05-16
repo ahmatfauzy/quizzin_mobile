@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quizzin/app/modules/login/controllers/login_controller.dart';
 
-
 class LoginView extends GetView<LoginController> {
   const LoginView({Key? key}) : super(key: key);
 
@@ -15,20 +14,32 @@ class LoginView extends GetView<LoginController> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                Image.asset('assets/images/logos/logoblue.png', width: 100, height: 100, fit: BoxFit.contain,
+                Image.asset(
+                  'assets/images/logos/logoblue.png',
+                  width: 100,
+                  height: 100,
+                  fit: BoxFit.contain,
                 ),
                 const SizedBox(height: 24),
-                const Text("Welcome Back", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-                const Text("Log in to continue your learning journey.", textAlign: TextAlign.center),
+                const Text(
+                  "Welcome Back",
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                ),
+                const Text(
+                  "Log in to continue your learning journey.",
+                  textAlign: TextAlign.center,
+                ),
                 const SizedBox(height: 32),
-                
+
                 TextField(
                   controller: controller.emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     labelText: "EMAIL ADDRESS",
                     hintText: "student@example.com",
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -37,24 +48,55 @@ class LoginView extends GetView<LoginController> {
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: "PASSWORD",
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 32),
-                
+                const SizedBox(height: 8),
+
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Get.toNamed(
+                      '/forgot-password',
+                    ), // Navigasi ke halaman lupa password
+                    child: const Text(
+                      'Forgot Password?',
+                      style: TextStyle(
+                        color: Color(0xFF0056FF),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
                 SizedBox(
                   width: double.infinity,
                   height: 55,
-                  child: Obx(() => ElevatedButton(
-                    onPressed: controller.isLoading.value ? null : controller.login,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0056FF),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
+                  child: Obx(
+                    () => ElevatedButton(
+                      onPressed: controller.isLoading.value
+                          ? null
+                          : controller.login,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0056FF),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: controller.isLoading.value
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              "Login",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                              ),
+                            ),
                     ),
-                    child: controller.isLoading.value 
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text("Login", style: TextStyle(color: Colors.white, fontSize: 18)),
-                  )),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 Row(
@@ -63,10 +105,16 @@ class LoginView extends GetView<LoginController> {
                     const Text("Don't have an account? "),
                     GestureDetector(
                       onTap: () => Get.toNamed('/register'),
-                      child: const Text("Register", style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+                      child: const Text(
+                        "Register",
+                        style: TextStyle(
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ],
-                )
+                ),
               ],
             ),
           ),
