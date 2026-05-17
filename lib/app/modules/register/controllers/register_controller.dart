@@ -60,7 +60,7 @@ class RegisterController extends GetxController {
         snackPosition: SnackPosition.TOP,
       );
 
-      Get.offNamed('/face-registration');
+      Get.offNamed('/login');
     } on Exception catch (e) {
       String message = 'Terjadi kesalahan, coba lagi';
       if (e is DioException) {

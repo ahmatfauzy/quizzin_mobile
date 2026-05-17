@@ -236,7 +236,13 @@ class FaceRegistrationView extends GetView<FaceRegistrationController> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12)
           ),
-        ))
+        )),
+        const SizedBox(height: 32),
+        Text(
+          'Face recognition model by MCarlomagno\nLicensed under BSD-3-Clause',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 11, color: Colors.grey.shade500, height: 1.4),
+        ),
       ],
     );
   }
