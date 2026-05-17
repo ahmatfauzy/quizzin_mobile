@@ -98,6 +98,30 @@ class LoginView extends GetView<LoginController> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: Obx(
+                    () => OutlinedButton.icon(
+                      onPressed: controller.isLoading.value
+                          ? null
+                          : controller.loginWithFace,
+                      icon: const Icon(Icons.face),
+                      label: const Text(
+                        "Login with Face ID",
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF0056FF),
+                        side: const BorderSide(color: Color(0xFF0056FF)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
