@@ -1,12 +1,122 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart'; 
 import 'package:quizzin/app/modules/profile/controllers/profile_controller.dart';
 
 class ProfileView extends GetView<ProfileController> {
   const ProfileView({Key? key}) : super(key: key);
 
+  void _showImagePickerBottomSheet(BuildContext context, Color primaryColor) async {
+    final ImageSource? source = await Get.bottomSheet<ImageSource>(
+      Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Update Profile Photo', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: Icon(Icons.camera_alt_outlined, color: primaryColor),
+              title: const Text('Take from Camera'),
+              onTap: () => Get.back(result: ImageSource.camera),
+            ),
+            ListTile(
+              leading: Icon(Icons.photo_library_outlined, color: primaryColor),
+              title: const Text('Choose from Gallery'),
+              onTap: () => Get.back(result: ImageSource.gallery),
+            ),
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
+
+    if (source != null) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      controller.updatePhoto(source);
+    }
+  }
+
+  void _showChangePasswordDialog(BuildContext context, Color primaryColor) {
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Change Password', 
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF1A365D))
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildDialogPasswordField('Current Password', controller.currentPasswordController),
+              const SizedBox(height: 16),
+              _buildDialogPasswordField('New Password', controller.newPasswordController),
+              const SizedBox(height: 16),
+              _buildDialogPasswordField('Confirm New Password', controller.confirmPasswordController),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              controller.clearPasswordFields();
+              Get.back();
+            },
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600)),
+          ),
+          Obx(() => ElevatedButton(
+            onPressed: controller.isLoading.value ? null : () => controller.changePassword(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryColor,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10)
+            ),
+            child: controller.isLoading.value
+                ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : const Text('Update', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          )),
+        ],
+      ),
+      barrierDismissible: false,
+    );
+  }
+
+  Widget _buildDialogPasswordField(String label, TextEditingController textController) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black54)),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 45,
+          child: TextField(
+            controller: textController,
+            obscureText: true,
+            style: const TextStyle(fontSize: 14),
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+              filled: true,
+              fillColor: const Color(0xFFF8FAFC),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF0056FF))),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    const primaryColor = Color(0xFF0056FF);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
@@ -16,17 +126,13 @@ class ProfileView extends GetView<ProfileController> {
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
           onPressed: () => Get.back(),
         ),
-        title: const Text(
-          'Profile',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
-        ),
+        title: const Text('Profile', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
         centerTitle: false,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
-            // Foto Profil & Edit Icon
             Center(
               child: Column(
                 children: [
@@ -37,139 +143,125 @@ class ProfileView extends GetView<ProfileController> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 4),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 10,
-                            ),
-                          ],
+                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10)],
                         ),
                         child: Obx(
                           () => CircleAvatar(
                             radius: 50,
-                            backgroundImage: NetworkImage(
-                              controller.profilePicUrl.value,
-                            ),
+                            backgroundColor: Colors.grey.shade200,
+                            backgroundImage: NetworkImage(controller.profilePicUrl.value),
                           ),
                         ),
                       ),
                       GestureDetector(
-                        onTap: () => controller.updatePhoto(),
+                        onTap: () => _showImagePickerBottomSheet(context, primaryColor),
                         child: Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF0056FF),
+                            color: primaryColor,
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 2),
                           ),
-                          child: const Icon(
-                            Icons.edit,
-                            color: Colors.white,
-                            size: 16,
-                          ),
+                          child: const Icon(Icons.edit, color: Colors.white, size: 16),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  const Text(
-                    'TAP TO UPDATE PHOTO',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
-                      letterSpacing: 1.0,
-                    ),
-                  ),
+                  const Text('TAP TO UPDATE PHOTO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.0)),
                 ],
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
 
-            //  Kartu Personal Information 
+            // --- GAMIFICATION STATS BOARD ---
+            Obx(() {
+              final xp = controller.userData['xp_points'] ?? 0;
+              final streak = controller.userData['streak_days'] ?? 0;
+              final mastered = controller.userData['subjects_mastered'] ?? 0;
+
+              return Container(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildStatColumn('⚡ $xp', 'XP Points'),
+                    Container(height: 30, width: 1, color: Colors.grey.shade200),
+                    _buildStatColumn('🔥 $streak Days', 'Streak'),
+                    Container(height: 30, width: 1, color: Colors.grey.shade200),
+                    _buildStatColumn('🎓 $mastered', 'Mastered'),
+                  ],
+                ),
+              );
+            }),
+            const SizedBox(height: 24),
+
             _buildSectionCard(
               icon: Icons.person_outline,
               title: 'Personal Information',
               children: [
                 _buildInputField('Full Name', controller.nameController),
                 const SizedBox(height: 16),
-                _buildInputField('Email Address', controller.emailController),
+                _buildInputField('Email Address', controller.emailController, readOnly: true),
               ],
             ),
             const SizedBox(height: 16),
 
-            //  Kartu Academic Details 
             _buildSectionCard(
               icon: Icons.school_outlined,
               title: 'Academic Details',
               children: [
-                _buildInputField(
-                  'Academic Level',
-                  controller.levelController,
-                  hasDropdown: true,
-                ),
+                _buildInputField('Academic Level', controller.levelController, hasDropdown: true),
                 const SizedBox(height: 16),
-                _buildInputField(
-                  'Major/Area of Interest',
-                  controller.majorController,
-                ),
+                _buildInputField('Major/Area of Interest', controller.majorController),
               ],
             ),
             const SizedBox(height: 16),
 
-            //  Kartu Security & Preferences 
             _buildSectionCard(
               icon: Icons.settings_outlined,
               title: 'Security & Preferences',
               children: [
-                _buildPreferenceTile(Icons.lock_outline, 'Change Password'),
-                const SizedBox(height: 12),
                 _buildPreferenceTile(
-                  Icons.notifications_none,
-                  'Notification Settings',
+                  Icons.lock_outline, 
+                  'Change Password', 
+                  onTap: () => _showChangePasswordDialog(context, primaryColor)
                 ),
+                const SizedBox(height: 12),
+                _buildPreferenceTile(Icons.notifications_none, 'Notification Settings', onTap: () {}),
               ],
             ),
             const SizedBox(height: 32),
 
-            //  Tombol Save & Logout 
             SizedBox(
               width: double.infinity,
               height: 50,
-              child: ElevatedButton.icon(
-                onPressed: () => controller.saveChanges(),
-                icon: const Icon(Icons.save_outlined, size: 20),
-                label: const Text(
-                  'Save Changes',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0056FF),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+              child: Obx(
+                () => ElevatedButton.icon(
+                  onPressed: controller.isLoading.value ? null : () => controller.saveChanges(),
+                  icon: controller.isLoading.value
+                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Icon(Icons.save_outlined, size: 20),
+                  label: Text(controller.isLoading.value ? 'Saving...' : 'Save Changes', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(backgroundColor: primaryColor, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
                 ),
               ),
             ),
             const SizedBox(height: 16),
+
             SizedBox(
               width: double.infinity,
               height: 50,
               child: OutlinedButton.icon(
                 onPressed: () => controller.logout(),
                 icon: const Icon(Icons.logout, size: 20),
-                label: const Text(
-                  'Logout',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFFD32F2F), // Merah
-                  side: const BorderSide(color: Color(0xFFD32F2F)),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
+                label: const Text('Logout', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFFD32F2F), side: const BorderSide(color: Color(0xFFD32F2F)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
               ),
             ),
             const SizedBox(height: 20),
@@ -179,19 +271,20 @@ class ProfileView extends GetView<ProfileController> {
     );
   }
 
-  // Helper: Membuat Card putih sebagai kontainer
-  Widget _buildSectionCard({
-    required IconData icon,
-    required String title,
-    required List<Widget> children,
-  }) {
+  Widget _buildStatColumn(String value, String label) {
+    return Column(
+      children: [
+        Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1A365D))),
+        const SizedBox(height: 4),
+        Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500)),
+      ],
+    );
+  }
+
+  Widget _buildSectionCard({required IconData icon, required String title, required List<Widget> children}) {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -199,14 +292,7 @@ class ProfileView extends GetView<ProfileController> {
             children: [
               Icon(icon, color: const Color(0xFF1A365D), size: 20),
               const SizedBox(width: 8),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
+              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
             ],
           ),
           const SizedBox(height: 20),
@@ -216,51 +302,26 @@ class ProfileView extends GetView<ProfileController> {
     );
   }
 
-  // Helper: Membuat TextField dengan label di atasnya
-  Widget _buildInputField(
-    String label,
-    TextEditingController textController, {
-    bool hasDropdown = false,
-  }) {
+  Widget _buildInputField(String label, TextEditingController textController, {bool hasDropdown = false, bool readOnly = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: Colors.black54,
-          ),
-        ),
+        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black54)),
         const SizedBox(height: 8),
         SizedBox(
           height: 48,
           child: TextField(
             controller: textController,
-            style: const TextStyle(fontSize: 14),
+            readOnly: readOnly,
+            style: TextStyle(fontSize: 14, color: readOnly ? Colors.black38 : Colors.black87),
             decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 0,
-              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
               filled: true,
-              fillColor: const Color(0xFFF8FAFC),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF0056FF)),
-              ),
-              suffixIcon: hasDropdown
-                  ? const Icon(Icons.keyboard_arrow_down, color: Colors.grey)
-                  : null,
+              fillColor: readOnly ? Colors.grey.shade100 : const Color(0xFFF8FAFC),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF0056FF))),
+              suffixIcon: hasDropdown ? const Icon(Icons.keyboard_arrow_down, color: Colors.grey) : null,
             ),
           ),
         ),
@@ -268,22 +329,14 @@ class ProfileView extends GetView<ProfileController> {
     );
   }
 
-  // Helper: Membuat tombol pengaturan (Change Password / Notifications)
-  Widget _buildPreferenceTile(IconData icon, String title) {
+  Widget _buildPreferenceTile(IconData icon, String title, {required VoidCallback onTap}) {
     return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
+      decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey.shade300)),
       child: ListTile(
         leading: Icon(icon, color: Colors.black87, size: 20),
-        title: Text(
-          title,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-        ),
+        title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
         trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-        onTap: () {},
+        onTap: onTap,
         dense: true,
         visualDensity: const VisualDensity(vertical: -2),
       ),
