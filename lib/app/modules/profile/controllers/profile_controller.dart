@@ -70,6 +70,11 @@ class ProfileController extends GetxController {
       Get.snackbar('Berhasil', 'Profil Anda berhasil diperbarui!', 
           snackPosition: SnackPosition.TOP, backgroundColor: const Color(0xFF0056FF), colorText: Colors.white);
       fetchProfile(); 
+
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      Get.offAllNamed('/home');
+      
     } on dio_pkg.DioException catch (e) {
       _showErrorSnackbar('Gagal Memperbarui Profil', e);
     } finally {
@@ -106,7 +111,10 @@ class ProfileController extends GetxController {
 
       clearPasswordFields();
 
-      if (Get.isDialogOpen ?? false) Get.back();
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+        await Future.delayed(const Duration(milliseconds: 300)); 
+      }
 
       Get.snackbar('Berhasil', 'Password Anda berhasil diperbarui!', 
           snackPosition: SnackPosition.TOP, backgroundColor: const Color(0xFF0056FF), colorText: Colors.white);
