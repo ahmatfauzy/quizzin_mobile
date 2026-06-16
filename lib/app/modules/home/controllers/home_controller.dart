@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:quizzin/app/services/api_service.dart';
+
 
 class HomeController extends GetxController {
-  final userName = 'Ahmat Putra'.obs;
-  final streakDays = 5.obs;
+  final ApiService _apiService = ApiService();
+
+  final userName = 'Memuat...'.obs;
+  final profilePicUrl = 'https://wallpapers.com/images/featured/cool-profile-picture-87h46gcobjl5e4xu.jpg'.obs;
+  final streakDays = 0.obs;
+  
   final level = 12.obs;
   final levelProgress = 0.75.obs;
   final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -34,12 +40,34 @@ class HomeController extends GetxController {
     },
   ].obs; 
 
+  @override
+  void onInit() {
+    super.onInit();
+    fetchUserData();
+  }
+
+  Future<void> fetchUserData() async {
+    try {
+      final response = await _apiService.dio.get('/profile');
+      final userData = response.data as Map<String, dynamic>;
+
+      userName.value = userData['full_name'] ?? 'Student';
+      profilePicUrl.value = userData['avatar_url'] ?? 
+          'https://wallpapers.com/images/featured/cool-profile-picture-87h46gcobjl5e4xu.jpg';
+      streakDays.value = userData['streak_days'] ?? 0;
+    } catch (e) {
+      debugPrint('Gagal memuat data user di Home: $e');
+    }
+  }
+
   void selectDay(int index) {
     selectedDayIndex.value = index;
   }
 
-  void openProfile() {
-    Get.toNamed('/profile');
+  void openProfile() async {
+    await Get.toNamed('/profile');
+    
+    fetchUserData(); 
   }
 
   void openMaterial() {

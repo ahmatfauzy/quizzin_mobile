@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/home_controller.dart';
+import 'package:quizzin/app/modules/home/controllers/home_controller.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({Key? key}) : super(key: key);
@@ -20,13 +20,16 @@ class HomeView extends GetView<HomeController> {
             padding: const EdgeInsets.only(right: 16.0),
             child: GestureDetector(
               onTap: () => controller.openProfile(),
-              child: const CircleAvatar(radius: 16, backgroundImage: NetworkImage('https://static.tvtropes.org/pmwiki/pub/images/the_two_faces_of_squidward.png')),
+              child: Obx(() => CircleAvatar(
+                radius: 16, 
+                backgroundColor: Colors.grey.shade300,
+                backgroundImage: NetworkImage(controller.profilePicUrl.value),
+              )),
             ),
           ),
         ],
       ),
       
-      // perkondisian apabila tidak ada riwayat materi, maka tombol floating action button tidak muncul
       floatingActionButton: Obx(() => controller.recentMaterials.isEmpty 
         ? const SizedBox.shrink() // Widget kosong jika tidak ada materi
         : FloatingActionButton.extended(
@@ -154,7 +157,7 @@ class HomeView extends GetView<HomeController> {
           ),
           const SizedBox(height: 32),
           
-          // Area Grafik Bar (Bar Chart
+          // Area Grafik Bar (Bar Chart)
           SizedBox(
             height: 140, // Tinggi keseluruhan area grafik
             child: Obx(() => Row(
@@ -229,19 +232,19 @@ class HomeView extends GetView<HomeController> {
         // Mengubah warna dan ikon berdasarkan tema materi
         switch (material['theme']) {
           case 'vision':
-            iconData = Icons.remove_red_eye_outlined; // Ikon mata untuk Computer Vision
-            bgColor = const Color(0xFFF3E5F5); // Ungu pudar
-            iconColor = const Color(0xFF8E24AA); // Ungu pekat
+            iconData = Icons.remove_red_eye_outlined; 
+            bgColor = const Color(0xFFF3E5F5); 
+            iconColor = const Color(0xFF8E24AA); 
             break;
           case 'language':
-            iconData = Icons.translate; // Ikon bahasa untuk NLP
-            bgColor = const Color(0xFFE3F2FD); // Biru pudar
-            iconColor = const Color(0xFF1E88E5); // Biru pekat
+            iconData = Icons.translate; 
+            bgColor = const Color(0xFFE3F2FD); 
+            iconColor = const Color(0xFF1E88E5); 
             break;
           case 'ml':
-            iconData = Icons.memory; // Ikon chip AI untuk Machine Learning
-            bgColor = const Color(0xFFE8F5E9); // Hijau pudar
-            iconColor = const Color(0xFF43A047); // Hijau pekat
+            iconData = Icons.memory; 
+            bgColor = const Color(0xFFE8F5E9); 
+            iconColor = const Color(0xFF43A047); 
             break;
           default:
             iconData = Icons.picture_as_pdf_rounded;
