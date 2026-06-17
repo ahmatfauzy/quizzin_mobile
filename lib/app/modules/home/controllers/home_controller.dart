@@ -6,8 +6,10 @@ import 'package:quizzin/app/services/api_service.dart';
 class HomeController extends GetxController {
   final ApiService _apiService = ApiService();
 
-  final userName = 'Memuat...'.obs;
-  final profilePicUrl = 'https://wallpapers.com/images/featured/cool-profile-picture-87h46gcobjl5e4xu.jpg'.obs;
+  final isProfileLoading = true.obs;
+
+  final userName = ''.obs;
+  final profilePicUrl = ''.obs;
   final streakDays = 0.obs;
   
   final level = 12.obs;
@@ -43,20 +45,24 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchUserData();
+    fetchUserData(); 
   }
 
   Future<void> fetchUserData() async {
+    isProfileLoading.value = true; 
     try {
       final response = await _apiService.dio.get('/profile');
       final userData = response.data as Map<String, dynamic>;
 
       userName.value = userData['full_name'] ?? 'Student';
       profilePicUrl.value = userData['avatar_url'] ?? 
-          'https://wallpapers.com/images/featured/cool-profile-picture-87h46gcobjl5e4xu.jpg';
+          'https://marketplace.canva.com/wUgTo/MAGiKZwUgTo/1/tl/canva-avatar-icon-MAGiKZwUgTo.png';
       streakDays.value = userData['streak_days'] ?? 0;
     } catch (e) {
       debugPrint('Gagal memuat data user di Home: $e');
+      userName.value = 'Student'; 
+    } finally {
+      isProfileLoading.value = false; 
     }
   }
 
@@ -66,8 +72,7 @@ class HomeController extends GetxController {
 
   void openProfile() async {
     await Get.toNamed('/profile');
-    
-    fetchUserData(); 
+    fetchUserData();
   }
 
   void openMaterial() {

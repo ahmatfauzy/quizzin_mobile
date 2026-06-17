@@ -5,6 +5,60 @@ import 'package:quizzin/app/modules/home/controllers/home_controller.dart';
 class HomeView extends GetView<HomeController> {
   const HomeView({Key? key}) : super(key: key);
 
+  Widget _buildPopUpAnimation(Widget child, int delayMs) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 600 + delayMs),
+      curve: Curves.easeOutBack, // Memberikan efek memantul
+      builder: (context, value, childWidget) {
+        return Transform.scale(
+          scale: value,
+          child: Opacity(
+            opacity: value.clamp(0.0, 1.0), 
+            child: childWidget,
+          ),
+        );
+      },
+      child: child,
+    );
+  }
+
+  Widget _buildSlideDownAnimation(Widget child, int delayMs) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 500 + delayMs),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, childWidget) {
+        return Transform.translate(
+          offset: Offset(0, -30 * (1 - value)), // Meluncur dari 30px di atas
+          child: Opacity(
+            opacity: value,
+            child: childWidget,
+          ),
+        );
+      },
+      child: child,
+    );
+  }
+
+  Widget _buildSlideUpAnimation(Widget child, int delayMs) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 500 + delayMs),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, childWidget) {
+        return Transform.translate(
+          offset: Offset(0, 40 * (1 - value)), // Meluncur dari 40px di bawah
+          child: Opacity(
+            opacity: value,
+            child: childWidget,
+          ),
+        );
+      },
+      child: child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -13,31 +67,51 @@ class HomeView extends GetView<HomeController> {
         backgroundColor: const Color(0xFFF8FAFC),
         elevation: 0,
         automaticallyImplyLeading: false, 
-        title: const Text('Quizzin', style: TextStyle(color: Color(0xFF0056FF), fontWeight: FontWeight.bold)),
+        title: _buildSlideDownAnimation(
+          const Text('Quizzin', style: TextStyle(color: Color(0xFF0056FF), fontWeight: FontWeight.bold)),
+          0,
+        ),
         centerTitle: true,
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: GestureDetector(
-              onTap: () => controller.openProfile(),
-              child: Obx(() => CircleAvatar(
-                radius: 16, 
-                backgroundColor: Colors.grey.shade300,
-                backgroundImage: NetworkImage(controller.profilePicUrl.value),
-              )),
+          _buildSlideDownAnimation(
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: GestureDetector(
+                onTap: () => controller.openProfile(),
+                child: Obx(() {
+                  if (controller.isProfileLoading.value) {
+                    return const SizedBox(
+                      width: 32, height: 32,
+                      child: Padding(
+                        padding: EdgeInsets.all(4.0),
+                        child: CircularProgressIndicator(color: Color(0xFF0056FF), strokeWidth: 2.5),
+                      ),
+                    );
+                  }
+                  return CircleAvatar(
+                    radius: 16, 
+                    backgroundColor: Colors.grey.shade300,
+                    backgroundImage: NetworkImage(controller.profilePicUrl.value),
+                  );
+                }),
+              ),
             ),
+            150, // Delay 150ms
           ),
         ],
       ),
       
       floatingActionButton: Obx(() => controller.recentMaterials.isEmpty 
-        ? const SizedBox.shrink() // Widget kosong jika tidak ada materi
-        : FloatingActionButton.extended(
-            onPressed: () => controller.addNewMaterial(),
-            backgroundColor: const Color(0xFF0056FF),
-            elevation: 4,
-            icon: const Icon(Icons.add, color: Colors.white),
-            label: const Text('New Quiz', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        ? const SizedBox.shrink() 
+        : _buildPopUpAnimation(
+            FloatingActionButton.extended(
+              onPressed: () => controller.addNewMaterial(),
+              backgroundColor: const Color(0xFF0056FF),
+              elevation: 4,
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: const Text('New Quiz', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+            800, // Dimunculkan paling akhir
           )
       ),
 
@@ -46,35 +120,46 @@ class HomeView extends GetView<HomeController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(padding: const EdgeInsets.symmetric(horizontal: 20.0), child: _buildWelcomeCard()),
+            // Welcome Card menggunakan efek Pop-Up memantul
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0), 
+              child: _buildPopUpAnimation(_buildWelcomeCard(), 200),
+            ),
             const SizedBox(height: 24),
-            Padding(padding: const EdgeInsets.symmetric(horizontal: 20.0), child: _buildWeeklyActivity()),
+            
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0), 
+              child: _buildSlideUpAnimation(_buildWeeklyActivity(), 400),
+            ),
             const SizedBox(height: 32),
             
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Recent Materials', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
-                  Obx(() => controller.recentMaterials.isEmpty 
-                    ? const SizedBox() 
-                    : TextButton(onPressed: () => controller.openAllMaterials(), child: const Text('See All', style: TextStyle(color: Color(0xFF0056FF), fontWeight: FontWeight.w600)))
-                  )
-                ],
+              child: _buildSlideUpAnimation(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Recent Materials', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+                    Obx(() => controller.recentMaterials.isEmpty 
+                      ? const SizedBox() 
+                      : TextButton(onPressed: () => controller.openAllMaterials(), child: const Text('See All', style: TextStyle(color: Color(0xFF0056FF), fontWeight: FontWeight.w600)))
+                    )
+                  ],
+                ),
+                500,
               ),
             ),
             const SizedBox(height: 12),
             
             Obx(() {
-              if (controller.recentMaterials.isEmpty) {
-                return _buildEmptyState();
-              } else {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: _buildRecentMaterialsVertical(),
-                );
-              }
+              Widget content = controller.recentMaterials.isEmpty 
+                  ? _buildEmptyState() 
+                  : _buildRecentMaterialsVertical();
+                  
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: _buildSlideUpAnimation(content, 600),
+              );
             }),
             
             const SizedBox(height: 80), 
@@ -96,7 +181,18 @@ class HomeView extends GetView<HomeController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Obx(() => Text('Welcome back,\n${controller.userName.value}! 👋', style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white, height: 1.2))),
+          Obx(() {
+            if (controller.isProfileLoading.value) {
+              return Row(
+                children: const [
+                  Text('Welcome back,\nMemuat...', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white, height: 1.2)),
+                  SizedBox(width: 12),
+                  SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+                ],
+              );
+            }
+            return Text('Welcome back,\n${controller.userName.value}! 👋', style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white, height: 1.2));
+          }),
           const SizedBox(height: 12),
           Obx(() => Text("You're on a ${controller.streakDays.value}-day learning streak. Keep up the momentum in your advanced module.", style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.4))),
           const SizedBox(height: 24),
@@ -157,27 +253,23 @@ class HomeView extends GetView<HomeController> {
           ),
           const SizedBox(height: 32),
           
-          // Area Grafik Bar (Bar Chart)
           SizedBox(
-            height: 140, // Tinggi keseluruhan area grafik
+            height: 140, 
             child: Obx(() => Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: List.generate(controller.days.length, (index) {
                 
                 bool isSelected = controller.selectedDayIndex.value == index;
-                // Tinggi maksimal bar adalah 80 pixel
                 double barHeight = controller.weeklyActivityData[index] * 80; 
-                // Jika nilai 0, tetap berikan sedikit tinggi (misal 6) agar bar tetap terlihat
                 if (barHeight < 6) barHeight = 6; 
 
                 return GestureDetector(
                   onTap: () => controller.selectDay(index),
-                  behavior: HitTestBehavior.opaque, // Memastikan seluruh kolom bisa diklik
+                  behavior: HitTestBehavior.opaque,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      // Tooltip Angka Persentase (Muncul jika hari diklik)
                       AnimatedOpacity(
                         opacity: isSelected ? 1.0 : 0.0,
                         duration: const Duration(milliseconds: 200),
@@ -187,21 +279,17 @@ class HomeView extends GetView<HomeController> {
                         ),
                       ),
                       const SizedBox(height: 6),
-                      
-                      // Grafik Batang (Bar)
                       AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeOutCubic, // Animasi memantul halus
-                        width: 32, // Lebar batang
+                        curve: Curves.easeOutCubic,
+                        width: 32, 
                         height: barHeight,
                         decoration: BoxDecoration(
-                          color: isSelected ? const Color(0xFF0056FF) : const Color(0xFFE8F1FF), // Biru tua vs Biru muda
+                          color: isSelected ? const Color(0xFF0056FF) : const Color(0xFFE8F1FF),
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
                       const SizedBox(height: 12),
-                      
-                      // Label Hari di Bawah
                       Text(
                         controller.days[index],
                         style: TextStyle(
@@ -229,7 +317,6 @@ class HomeView extends GetView<HomeController> {
         Color bgColor;
         Color iconColor;
 
-        // Mengubah warna dan ikon berdasarkan tema materi
         switch (material['theme']) {
           case 'vision':
             iconData = Icons.remove_red_eye_outlined; 
@@ -265,15 +352,12 @@ class HomeView extends GetView<HomeController> {
             ),
             child: Row(
               children: [
-                // Ikon dengan tema
                 Container(
                   padding: const EdgeInsets.all(12), 
                   decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(14)), 
                   child: Icon(iconData, color: iconColor, size: 24)
                 ),
                 const SizedBox(width: 16),
-                
-                // Konten Teks & Progress Bar
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -308,7 +392,6 @@ class HomeView extends GetView<HomeController> {
 
   Widget _buildEmptyState() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
