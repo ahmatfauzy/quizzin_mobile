@@ -9,7 +9,7 @@ class HomeView extends GetView<HomeController> {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
       duration: Duration(milliseconds: 600 + delayMs),
-      curve: Curves.easeOutBack, // Memberikan efek memantul
+      curve: Curves.easeOutBack,
       builder: (context, value, childWidget) {
         return Transform.scale(
           scale: value,
@@ -30,7 +30,7 @@ class HomeView extends GetView<HomeController> {
       curve: Curves.easeOutCubic,
       builder: (context, value, childWidget) {
         return Transform.translate(
-          offset: Offset(0, -30 * (1 - value)), // Meluncur dari 30px di atas
+          offset: Offset(0, -30 * (1 - value)),
           child: Opacity(
             opacity: value,
             child: childWidget,
@@ -48,7 +48,7 @@ class HomeView extends GetView<HomeController> {
       curve: Curves.easeOutCubic,
       builder: (context, value, childWidget) {
         return Transform.translate(
-          offset: Offset(0, 40 * (1 - value)), // Meluncur dari 40px di bawah
+          offset: Offset(0, 40 * (1 - value)),
           child: Opacity(
             opacity: value,
             child: childWidget,
@@ -96,7 +96,7 @@ class HomeView extends GetView<HomeController> {
                 }),
               ),
             ),
-            150, // Delay 150ms
+            150,
           ),
         ],
       ),
@@ -111,7 +111,7 @@ class HomeView extends GetView<HomeController> {
               icon: const Icon(Icons.add, color: Colors.white),
               label: const Text('New Quiz', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
-            800, // Dimunculkan paling akhir
+            800,
           )
       ),
 
@@ -120,7 +120,6 @@ class HomeView extends GetView<HomeController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Welcome Card menggunakan efek Pop-Up memantul
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0), 
               child: _buildPopUpAnimation(_buildWelcomeCard(), 200),
@@ -181,18 +180,31 @@ class HomeView extends GetView<HomeController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Obx(() {
-            if (controller.isProfileLoading.value) {
-              return Row(
-                children: const [
-                  Text('Welcome back,\nMemuat...', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white, height: 1.2)),
-                  SizedBox(width: 12),
-                  SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
-                ],
-              );
-            }
-            return Text('Welcome back,\n${controller.userName.value}! 👋', style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white, height: 1.2));
-          }),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Obx(() {
+                  if (controller.isProfileLoading.value) {
+                    return const Text('Welcome back,\nMemuat...', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white, height: 1.2));
+                  }
+                  return Text('Welcome back,\n${controller.userName.value}! 👋', style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white, height: 1.2));
+                }),
+              ),
+              Obx(() => Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '⚡ ${controller.xpPoints.value} Total XP',
+                  style: const TextStyle(color: Color(0xFFA5E08B), fontWeight: FontWeight.bold, fontSize: 13),
+                ),
+              )),
+            ],
+          ),
           const SizedBox(height: 12),
           Obx(() => Text("You're on a ${controller.streakDays.value}-day learning streak. Keep up the momentum in your advanced module.", style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.4))),
           const SizedBox(height: 24),
@@ -205,13 +217,20 @@ class HomeView extends GetView<HomeController> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    // Menampilkan Level Dinamis hasil kalkulasi
                     Obx(() => Text('Level ${controller.level.value} Scholar', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
-                    Obx(() => Text('${(controller.levelProgress.value * 100).toInt()}% to Level ${controller.level.value + 1}', style: const TextStyle(color: Colors.white70, fontSize: 10))),
+                    
+                    // PERBAIKAN: Menampilkan angka konkrit XP saat ini / Target XP berikutnya
+                    Obx(() => Text(
+                      '${controller.xpInCurrentLevel.value} / ${controller.xpPerLevel} XP (${(controller.levelProgress.value * 100).toInt()}%)', 
+                      style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w500)
+                    )),
                   ],
                 ),
                 const SizedBox(height: 10),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
+                  // Progress bar otomatis menyesuaikan rasio levelProgress yang reaktif
                   child: Obx(() => LinearProgressIndicator(value: controller.levelProgress.value, backgroundColor: Colors.white.withOpacity(0.2), valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFA5E08B)), minHeight: 8)),
                 ),
               ],

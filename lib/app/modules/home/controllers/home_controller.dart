@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quizzin/app/services/api_service.dart';
@@ -11,9 +12,15 @@ class HomeController extends GetxController {
   final userName = ''.obs;
   final profilePicUrl = ''.obs;
   final streakDays = 0.obs;
+  final xpPoints = 0.obs;
   
-  final level = 12.obs;
-  final levelProgress = 0.75.obs;
+  final level = 1.obs;
+  final levelProgress = 0.0.obs;
+  final xpInCurrentLevel = 0.obs;
+  final xpPerLevel = 500; 
+  
+  Timer? _autoRefreshTimer;
+
   final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   final weeklyActivityData = <double>[0.4, 0.7, 1.0, 0.3, 0.6, 0.1, 0.0].obs;
   final selectedDayIndex = 2.obs; 
@@ -46,23 +53,39 @@ class HomeController extends GetxController {
   void onInit() {
     super.onInit();
     fetchUserData(); 
+    _startPeriodicRefresh(); 
   }
 
-  Future<void> fetchUserData() async {
-    isProfileLoading.value = true; 
+  void _startPeriodicRefresh() {
+    _autoRefreshTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      fetchUserData(silent: true);
+    });
+  }
+
+  Future<void> fetchUserData({bool silent = false}) async {
+    if (!silent) isProfileLoading.value = true; 
+    
     try {
       final response = await _apiService.dio.get('/profile');
       final userData = response.data as Map<String, dynamic>;
 
       userName.value = userData['full_name'] ?? 'Student';
       profilePicUrl.value = userData['avatar_url'] ?? 
-          'https://marketplace.canva.com/wUgTo/MAGiKZwUgTo/1/tl/canva-avatar-icon-MAGiKZwUgTo.png';
+          'https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png';
       streakDays.value = userData['streak_days'] ?? 0;
+      
+      int totalXp = userData['xp_points'] ?? 0;
+      xpPoints.value = totalXp; 
+
+      level.value = (totalXp ~/ xpPerLevel) + 1;
+      xpInCurrentLevel.value = totalXp % xpPerLevel; 
+      levelProgress.value = xpInCurrentLevel.value / xpPerLevel; 
+
     } catch (e) {
-      debugPrint('Gagal memuat data user di Home: $e');
-      userName.value = 'Student'; 
+      debugPrint('Gagal mengambil data gamifikasi di Home: $e');
+      if (!silent) userName.value = 'Student';
     } finally {
-      isProfileLoading.value = false; 
+      if (!silent) isProfileLoading.value = false;
     }
   }
 
@@ -72,7 +95,7 @@ class HomeController extends GetxController {
 
   void openProfile() async {
     await Get.toNamed('/profile');
-    fetchUserData();
+    fetchUserData(silent: true); 
   }
 
   void openMaterial() {
@@ -92,5 +115,11 @@ class HomeController extends GetxController {
 
   void openAllMaterials() {
     Get.toNamed('/all-materials');
+  }
+
+  @override
+  void onClose() {
+    _autoRefreshTimer?.cancel(); 
+    super.onClose();
   }
 }
