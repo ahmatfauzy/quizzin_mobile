@@ -10,25 +10,14 @@ class ProfileView extends GetView<ProfileController> {
     final ImageSource? source = await Get.bottomSheet<ImageSource>(
       Container(
         padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-        ),
+        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20))),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text('Update Profile Photo', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
-            ListTile(
-              leading: Icon(Icons.camera_alt_outlined, color: primaryColor),
-              title: const Text('Take from Camera'),
-              onTap: () => Get.back(result: ImageSource.camera),
-            ),
-            ListTile(
-              leading: Icon(Icons.photo_library_outlined, color: primaryColor),
-              title: const Text('Choose from Gallery'),
-              onTap: () => Get.back(result: ImageSource.gallery),
-            ),
+            ListTile(leading: Icon(Icons.camera_alt_outlined, color: primaryColor), title: const Text('Take from Camera'), onTap: () => Get.back(result: ImageSource.camera)),
+            ListTile(leading: Icon(Icons.photo_library_outlined, color: primaryColor), title: const Text('Choose from Gallery'), onTap: () => Get.back(result: ImageSource.gallery)),
             const SizedBox(height: 10),
           ],
         ),
@@ -46,10 +35,7 @@ class ProfileView extends GetView<ProfileController> {
       AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Change Password', 
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF1A365D))
-        ),
+        title: const Text('Change Password', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF1A365D))),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -63,20 +49,10 @@ class ProfileView extends GetView<ProfileController> {
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () {
-              controller.clearPasswordFields();
-              Get.back();
-            },
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600)),
-          ),
+          TextButton(onPressed: () { controller.clearPasswordFields(); Get.back(); }, child: const Text('Cancel', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600))),
           Obx(() => ElevatedButton(
             onPressed: controller.isLoading.value ? null : () => controller.changePassword(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryColor,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10)
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: primaryColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)), padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10)),
             child: controller.isLoading.value
                 ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                 : const Text('Update', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -96,13 +72,9 @@ class ProfileView extends GetView<ProfileController> {
         SizedBox(
           height: 45,
           child: TextField(
-            controller: textController,
-            obscureText: true,
-            style: const TextStyle(fontSize: 14),
+            controller: textController, obscureText: true, style: const TextStyle(fontSize: 14),
             decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14),
-              filled: true,
-              fillColor: const Color(0xFFF8FAFC),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 14), filled: true, fillColor: const Color(0xFFF8FAFC),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
               enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
               focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF0056FF))),
@@ -120,159 +92,212 @@ class ProfileView extends GetView<ProfileController> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF8FAFC),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => Get.back(),
-        ),
+        backgroundColor: const Color(0xFFF8FAFC), elevation: 0,
+        leading: IconButton(icon: const Icon(Icons.arrow_back, color: Colors.black87), onPressed: () => Get.back()),
         title: const Text('Profile', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
         centerTitle: false,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          children: [
-            Center(
-              child: Column(
-                children: [
-                  Stack(
-                    alignment: Alignment.bottomRight,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 4),
-                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10)],
-                        ),
-                        child: Obx(
-                          () => CircleAvatar(
-                            radius: 50,
-                            backgroundColor: Colors.grey.shade200,
-                            backgroundImage: NetworkImage(controller.profilePicUrl.value),
-                          ),
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () => _showImagePickerBottomSheet(context, primaryColor),
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: primaryColor,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          child: const Icon(Icons.edit, color: Colors.white, size: 16),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  const Text('TAP TO UPDATE PHOTO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.0)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
+      body: Obx(() {
+        // --- LOGIKA UTAMA: Tampilkan Skeleton UI jika data masih di-fetch ---
+        if (controller.isFetchingProfile.value) {
+          return _buildSkeletonUI();
+        }
+        return _buildActualContent(context, primaryColor);
+      }),
+    );
+  }
 
-            // --- GAMIFICATION STATS BOARD ---
-            Obx(() {
-              final xp = controller.userData['xp_points'] ?? 0;
-              final streak = controller.userData['streak_days'] ?? 0;
-              final mastered = controller.userData['subjects_mastered'] ?? 0;
-
-              return Container(
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+  Widget _buildActualContent(BuildContext context, Color primaryColor) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        children: [
+          Center(
+            child: Column(
+              children: [
+                Stack(
+                  alignment: Alignment.bottomRight,
                   children: [
-                    _buildStatColumn('⚡ $xp', 'XP Points'),
-                    Container(height: 30, width: 1, color: Colors.grey.shade200),
-                    _buildStatColumn('🔥 $streak Days', 'Streak'),
-                    Container(height: 30, width: 1, color: Colors.grey.shade200),
-                    _buildStatColumn('🎓 $mastered', 'Mastered'),
+                    Container(
+                      width: 100, height: 100,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 4),
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10)],
+                      ),
+                      child: Obx(
+                        () => ClipOval(
+                          child: Image.network(
+                            controller.profilePicUrl.value,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child; // Gambar selesai di-load
+                              return Container(
+                                color: Colors.grey.shade200,
+                                child: const Center(
+                                  child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0056FF))),
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey.shade200, child: const Icon(Icons.person, color: Colors.grey, size: 40)),
+                          ),
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => _showImagePickerBottomSheet(context, primaryColor),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(color: primaryColor, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
+                        child: const Icon(Icons.edit, color: Colors.white, size: 16),
+                      ),
+                    ),
                   ],
                 ),
-              );
-            }),
-            const SizedBox(height: 24),
-
-            _buildSectionCard(
-              icon: Icons.person_outline,
-              title: 'Personal Information',
-              children: [
-                _buildInputField('Full Name', controller.nameController),
-                const SizedBox(height: 16),
-                _buildInputField('Email Address', controller.emailController, readOnly: true),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            _buildSectionCard(
-              icon: Icons.school_outlined,
-              title: 'Academic Details',
-              children: [
-                _buildInputField('Academic Level', controller.levelController, hasDropdown: true),
-                const SizedBox(height: 16),
-                _buildInputField('Major/Area of Interest', controller.majorController),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            _buildSectionCard(
-              icon: Icons.settings_outlined,
-              title: 'Security & Preferences',
-              children: [
-                _buildPreferenceTile(
-                  Icons.lock_outline, 
-                  'Change Password', 
-                  onTap: () => _showChangePasswordDialog(context, primaryColor)
-                ),
                 const SizedBox(height: 12),
-                _buildPreferenceTile(Icons.notifications_none, 'Notification Settings', onTap: () {}),
+                const Text('TAP TO UPDATE PHOTO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.0)),
               ],
             ),
-            const SizedBox(height: 32),
+          ),
+          const SizedBox(height: 24),
 
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: Obx(
-                () => ElevatedButton.icon(
-                  onPressed: controller.isLoading.value ? null : () => controller.saveChanges(),
-                  icon: controller.isLoading.value
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Icon(Icons.save_outlined, size: 20),
-                  label: Text(controller.isLoading.value ? 'Saving...' : 'Save Changes', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(backgroundColor: primaryColor, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-                ),
-              ),
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildStatColumn('⚡ ${controller.userData['xp_points'] ?? 0}', 'XP Points'),
+                Container(height: 30, width: 1, color: Colors.grey.shade200),
+                _buildStatColumn('🔥 ${controller.userData['streak_days'] ?? 0} Days', 'Streak'),
+                Container(height: 30, width: 1, color: Colors.grey.shade200),
+                _buildStatColumn('🎓 ${controller.userData['subjects_mastered'] ?? 0}', 'Mastered'),
+              ],
             ),
+          ),
+          const SizedBox(height: 24),
+
+          _buildSectionCard(icon: Icons.person_outline, title: 'Personal Information', children: [
+            _buildInputField('Full Name', controller.nameController),
             const SizedBox(height: 16),
+            _buildInputField('Email Address', controller.emailController, readOnly: true),
+          ]),
+          const SizedBox(height: 16),
 
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: OutlinedButton.icon(
-                onPressed: () => controller.logout(),
-                icon: const Icon(Icons.logout, size: 20),
-                label: const Text('Logout', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFFD32F2F), side: const BorderSide(color: Color(0xFFD32F2F)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+          _buildSectionCard(icon: Icons.school_outlined, title: 'Academic Details', children: [
+            _buildInputField('Academic Level', controller.levelController, hasDropdown: true),
+            const SizedBox(height: 16),
+            _buildInputField('Major/Area of Interest', controller.majorController),
+          ]),
+          const SizedBox(height: 16),
+
+          _buildSectionCard(icon: Icons.settings_outlined, title: 'Security & Preferences', children: [
+            _buildPreferenceTile(Icons.lock_outline, 'Change Password', onTap: () => _showChangePasswordDialog(context, primaryColor)),
+            const SizedBox(height: 12),
+            _buildPreferenceTile(Icons.notifications_none, 'Notification Settings', onTap: () {}),
+          ]),
+          const SizedBox(height: 32),
+
+          SizedBox(
+            width: double.infinity, height: 50,
+            child: Obx(
+              () => ElevatedButton.icon(
+                onPressed: controller.isLoading.value ? null : () => controller.saveChanges(),
+                icon: controller.isLoading.value ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.save_outlined, size: 20),
+                label: Text(controller.isLoading.value ? 'Saving...' : 'Save Changes', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(backgroundColor: primaryColor, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
               ),
             ),
-            const SizedBox(height: 20),
-          ],
-        ),
+          ),
+          const SizedBox(height: 16),
+
+          SizedBox(
+            width: double.infinity, height: 50,
+            child: OutlinedButton.icon(
+              onPressed: () => controller.logout(),
+              icon: const Icon(Icons.logout, size: 20),
+              label: const Text('Logout', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFFD32F2F), side: const BorderSide(color: Color(0xFFD32F2F)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSkeletonUI() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        children: [
+          // Skeleton Foto Profil
+          Container(width: 100, height: 100, decoration: BoxDecoration(color: Colors.grey.shade300, shape: BoxShape.circle)),
+          const SizedBox(height: 12),
+          Container(width: 120, height: 10, color: Colors.grey.shade300),
+          const SizedBox(height: 32),
+
+          // Skeleton Gamification
+          Container(
+            height: 80, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildSkeletonBox(40, 40), _buildSkeletonBox(40, 40), _buildSkeletonBox(40, 40),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Skeleton Kartu Form
+          _buildSkeletonCard(2),
+          const SizedBox(height: 16),
+          _buildSkeletonCard(2),
+          const SizedBox(height: 16),
+          _buildSkeletonCard(2),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSkeletonBox(double width, double height) {
+    return Container(width: width, height: height, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(8)));
+  }
+
+  Widget _buildSkeletonCard(int fieldCount) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(width: 20, height: 20, color: Colors.grey.shade300),
+              const SizedBox(width: 8),
+              Container(width: 150, height: 16, color: Colors.grey.shade300),
+            ],
+          ),
+          const SizedBox(height: 20),
+          ...List.generate(fieldCount, (index) => Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(width: 100, height: 12, color: Colors.grey.shade300),
+                const SizedBox(height: 8),
+                Container(width: double.infinity, height: 48, decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(8))),
+              ],
+            ),
+          )),
+        ],
       ),
     );
   }
 
   Widget _buildStatColumn(String value, String label) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1A365D))),
         const SizedBox(height: 4),
@@ -290,8 +315,7 @@ class ProfileView extends GetView<ProfileController> {
         children: [
           Row(
             children: [
-              Icon(icon, color: const Color(0xFF1A365D), size: 20),
-              const SizedBox(width: 8),
+              Icon(icon, color: const Color(0xFF1A365D), size: 20), const SizedBox(width: 8),
               Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
             ],
           ),
@@ -311,13 +335,9 @@ class ProfileView extends GetView<ProfileController> {
         SizedBox(
           height: 48,
           child: TextField(
-            controller: textController,
-            readOnly: readOnly,
-            style: TextStyle(fontSize: 14, color: readOnly ? Colors.black38 : Colors.black87),
+            controller: textController, readOnly: readOnly, style: TextStyle(fontSize: 14, color: readOnly ? Colors.black38 : Colors.black87),
             decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-              filled: true,
-              fillColor: readOnly ? Colors.grey.shade100 : const Color(0xFFF8FAFC),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0), filled: true, fillColor: readOnly ? Colors.grey.shade100 : const Color(0xFFF8FAFC),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
               enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
               focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF0056FF))),
@@ -336,9 +356,7 @@ class ProfileView extends GetView<ProfileController> {
         leading: Icon(icon, color: Colors.black87, size: 20),
         title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
         trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-        onTap: onTap,
-        dense: true,
-        visualDensity: const VisualDensity(vertical: -2),
+        onTap: onTap, dense: true, visualDensity: const VisualDensity(vertical: -2),
       ),
     );
   }

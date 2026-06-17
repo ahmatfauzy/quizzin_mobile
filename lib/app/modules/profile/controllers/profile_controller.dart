@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:quizzin/app/services/api_service.dart';
 import 'package:quizzin/app/services/auth_service.dart';
 
+
 class ProfileController extends GetxController {
   final nameController = TextEditingController();
   final emailController = TextEditingController();
@@ -15,7 +16,10 @@ class ProfileController extends GetxController {
   final newPasswordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
+  final isFetchingProfile = true.obs; 
+  
   final isLoading = false.obs;
+  
   final profilePicUrl = ''.obs;
   final userData = <String, dynamic>{}.obs;
 
@@ -31,7 +35,7 @@ class ProfileController extends GetxController {
   }
 
   Future<void> fetchProfile() async {
-    isLoading.value = true;
+    isFetchingProfile.value = true; 
     try {
       final response = await _apiService.dio.get('/profile');
       userData.value = response.data as Map<String, dynamic>;
@@ -42,18 +46,17 @@ class ProfileController extends GetxController {
       majorController.text = userData['major'] ?? '';
       
       profilePicUrl.value = userData['avatar_url'] ?? 
-          'https://static.tvtropes.org/pmwiki/pub/images/the_two_faces_of_squidward.png';
+          'https://marketplace.canva.com/wUgTo/MAGiKZwUgTo/1/tl/canva-avatar-icon-MAGiKZwUgTo.png';
     } on dio_pkg.DioException catch (e) {
       _showErrorSnackbar('Gagal Memuat Profil', e);
     } finally {
-      isLoading.value = false;
+      isFetchingProfile.value = false;
     }
   }
 
   Future<void> saveChanges() async {
     if (nameController.text.trim().isEmpty) {
-      Get.snackbar('Validasi Gagal', 'Nama lengkap tidak boleh kosong', 
-          snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.orange.shade100);
+      Get.snackbar('Validasi Gagal', 'Nama lengkap tidak boleh kosong', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.orange.shade100);
       return;
     }
 
@@ -67,14 +70,11 @@ class ProfileController extends GetxController {
           "major": majorController.text.trim(),
         },
       );
-      Get.snackbar('Berhasil', 'Profil Anda berhasil diperbarui!', 
-          snackPosition: SnackPosition.TOP, backgroundColor: const Color(0xFF0056FF), colorText: Colors.white);
-      fetchProfile(); 
-
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      Get.offAllNamed('/home');
+      Get.snackbar('Berhasil', 'Profil Anda berhasil diperbarui!', snackPosition: SnackPosition.TOP, backgroundColor: const Color(0xFF0056FF), colorText: Colors.white);
       
+      fetchProfile(); 
+      await Future.delayed(const Duration(milliseconds: 500));
+      Get.back();
     } on dio_pkg.DioException catch (e) {
       _showErrorSnackbar('Gagal Memperbarui Profil', e);
     } finally {
@@ -88,14 +88,12 @@ class ProfileController extends GetxController {
     final confirmPw = confirmPasswordController.text;
 
     if (currentPw.isEmpty || newPw.isEmpty || confirmPw.isEmpty) {
-      Get.snackbar('Validasi Gagal', 'Semua kolom password wajib diisi', 
-          snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.orange.shade100);
+      Get.snackbar('Validasi Gagal', 'Semua kolom password wajib diisi', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.orange.shade100);
       return;
     }
 
     if (newPw != confirmPw) {
-      Get.snackbar('Validasi Gagal', 'Password baru dan konfirmasi tidak cocok', 
-          snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.orange.shade100);
+      Get.snackbar('Validasi Gagal', 'Password baru dan konfirmasi tidak cocok', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.orange.shade100);
       return;
     }
 
@@ -110,14 +108,9 @@ class ProfileController extends GetxController {
       );
 
       clearPasswordFields();
+      if (Get.isDialogOpen ?? false) Get.back();
 
-      if (Get.isDialogOpen ?? false) {
-        Get.back();
-        await Future.delayed(const Duration(milliseconds: 300)); 
-      }
-
-      Get.snackbar('Berhasil', 'Password Anda berhasil diperbarui!', 
-          snackPosition: SnackPosition.TOP, backgroundColor: const Color(0xFF0056FF), colorText: Colors.white);
+      Get.snackbar('Berhasil', 'Password Anda berhasil diperbarui!', snackPosition: SnackPosition.TOP, backgroundColor: const Color(0xFF0056FF), colorText: Colors.white);
     } on dio_pkg.DioException catch (e) {
       _showErrorSnackbar('Gagal Mengubah Password', e);
     } finally {
@@ -144,8 +137,7 @@ class ProfileController extends GetxController {
       });
 
       await _apiService.dio.put('/profile/avatar', data: formData);
-      Get.snackbar('Foto Diperbarui', 'Foto profil baru berhasil diunggah!', 
-          snackPosition: SnackPosition.BOTTOM, backgroundColor: const Color(0xFF0056FF), colorText: Colors.white);
+      Get.snackbar('Foto Diperbarui', 'Foto profil baru berhasil diunggah!', snackPosition: SnackPosition.BOTTOM, backgroundColor: const Color(0xFF0056FF), colorText: Colors.white);
       fetchProfile(); 
     } on dio_pkg.DioException catch (e) {
       _showErrorSnackbar('Gagal Mengunggah Foto', e);
