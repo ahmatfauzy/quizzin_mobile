@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:get/get.dart';
+import 'package:quizzin/app/services/auth_service.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -17,8 +19,25 @@ class ApiService {
       },
     ));
 
+    // --- UTAMAKAN BAGIAN INTERCEPTOR INI ---
     dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
+        try {
+          // Cek apakah AuthService sudah terdaftar di memori GetX
+          if (Get.isRegistered<AuthService>()) {
+            final authService = Get.find<AuthService>();
+            
+            // Jika user sudah login dan tokennya ada di SharedPreferences, pasang otomatis ke header
+            if (authService.isLoggedIn && authService.token != null) {
+              options.headers['Authorization'] = 'Bearer ${authService.token}';
+            }
+          }
+        } catch (e) {
+          // Cetak log jika terjadi kegagalan pembacaan token di background
+          print('Gagal menginjeksi token otomatis di Interceptor: $e');
+        }
+        
+        // Lanjutkan request ke server
         handler.next(options);
       },
       onError: (error, handler) {
@@ -27,6 +46,7 @@ class ApiService {
     ));
   }
 
+  // Tetap pertahankan fungsi ini agar tidak memecah kode lama di LoginController / ProfileController
   void setAuthToken(String token) {
     dio.options.headers['Authorization'] = 'Bearer $token';
   }

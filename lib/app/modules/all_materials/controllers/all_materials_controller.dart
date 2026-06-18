@@ -1,47 +1,104 @@
+import 'package:dio/dio.dart' as dio_pkg;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:quizzin/app/services/api_service.dart';
 
 class AllMaterialsController extends GetxController {
+  final ApiService _apiService = ApiService();
   final searchController = TextEditingController();
 
-  // Daftar materi yang lebih lengkap
-  final allMaterials = <Map<String, dynamic>>[
-    {
-      'title': 'Computer Vision Chapter 4',
-      'type': 'PDF Document',
-      'theme': 'vision',
-      'progress': 0.6,
-      'time': '2h ago',
-    },
-    {
-      'title': 'NLP Midterm Practice',
-      'type': 'PDF Document',
-      'theme': 'language',
-      'progress': 0.25,
-      'time': 'Yesterday',
-    },
-    {
-      'title': 'Advanced Machine Learning',
-      'type': 'PDF Document',
-      'theme': 'ml',
-      'progress': 1.0,
-      'time': '3d ago',
-    },
-    {
-      'title': 'Deep Learning Basics',
-      'type': 'PDF Document',
-      'theme': 'ml',
-      'progress': 0.0,
-      'time': 'Last Week',
-    },
-    {
-      'title': 'Speech Recognition Systems',
-      'type': 'PDF Document',
-      'theme': 'language',
-      'progress': 0.8,
-      'time': 'Last Month',
-    },
-  ].obs;
+  final isLoading = true.obs;
+
+  // Master data seluruh materi dari API
+  final allMaterials = <Map<String, dynamic>>[].obs;
+  
+  final filteredMaterials = <Map<String, dynamic>>[].obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchAllDocuments();
+
+    // Pasang listener pada searchController agar mendeteksi setiap ketikan user
+    searchController.addListener(() {
+      filterMaterials(searchController.text);
+    });
+  }
+
+  // --- AMBIL DAFTAR SELURUH DOKUMEN (GET /documents) ---
+  Future<void> fetchAllDocuments() async {
+    try {
+      isLoading.value = true;
+      final response = await _apiService.dio.get('/documents/');
+      final responseData = response.data as Map<String, dynamic>;
+      final List rawDocuments = responseData['documents'] ?? [];
+
+      // Mapping data mentah API ke struktur Map UI kuis kita
+      final mappedData = rawDocuments.map((doc) {
+        return {
+          'id': doc['id'],
+          'title': doc['title'] ?? doc['original_filename'] ?? 'Untitled Document',
+          'type': 'PDF Document',
+          'theme': _determineTheme(doc['title'] ?? doc['original_filename'] ?? ''),
+          'progress': doc['status'] == 'completed' ? 1.0 : 0.0,
+          'time': _formatTimestamp(doc['created_at'] ?? ''),
+          'status': doc['status'] ?? 'processing',
+        };
+      }).toList();
+
+      allMaterials.assignAll(mappedData);
+      
+      // Jalankan filter awal (biar semua data langsung muncul jika search bar kosong)
+      filterMaterials(searchController.text);
+
+    } catch (e) {
+      debugPrint('Gagal memuat seluruh dokumen di AllMaterials: $e');
+      Get.snackbar(
+        'Gagal Memuat', 
+        'Terjadi kesalahan saat mengambil daftar dokumen.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade100
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // --- LOGIKA MESIN PENCARIAN LOKAL (SEARCH FILTER) ---
+  void filterMaterials(String query) {
+    if (query.trim().isEmpty) {
+      // Jika kolom pencarian kosong, tampilkan seluruh materi tanpa disaring
+      filteredMaterials.assignAll(allMaterials);
+    } else {
+      // Saring materi yang judulnya mengandung kata kunci pencarian (Case Insensitive)
+      final lowercaseQuery = query.toLowerCase();
+      final result = allMaterials.where((material) {
+        final title = material['title'].toString().toLowerCase();
+        return title.contains(lowercaseQuery);
+      }).toList();
+      
+      filteredMaterials.assignAll(result);
+    }
+  }
+
+  // Helper: Pilih tema icon berdasarkan nama berkas
+  String _determineTheme(String title) {
+    String lowerTitle = title.toLowerCase();
+    if (lowerTitle.contains('vision') || lowerTitle.contains('mata') || lowerTitle.contains('image')) return 'vision';
+    if (lowerTitle.contains('nlp') || lowerTitle.contains('bahasa') || lowerTitle.contains('text') || lowerTitle.contains('speech')) return 'language';
+    return 'ml';
+  }
+
+  // Helper: Rapikan penulisan waktu ISO backend
+  String _formatTimestamp(String isoString) {
+    if (isoString.isEmpty) return 'Baru saja';
+    try {
+      DateTime dt = DateTime.parse(isoString).toLocal();
+      return '${dt.day}/${dt.month} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    } catch (_) {
+      return 'Baru saja';
+    }
+  }
 
   void openMaterial() {
     Get.toNamed('/chapter-details');
