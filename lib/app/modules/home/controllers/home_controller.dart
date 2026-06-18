@@ -72,7 +72,7 @@ class HomeController extends GetxController {
       userName.value = userData['full_name'] ?? 'Student';
       profilePicUrl.value =
           userData['avatar_url'] ??
-          'https://static.tvtropes.org/pmwiki/pub/images/the_two_faces_of_squidward.png';
+          'https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png';
       streakDays.value = userData['streak_days'] ?? 0;
 
       int totalXp = userData['xp_points'] ?? 0;
