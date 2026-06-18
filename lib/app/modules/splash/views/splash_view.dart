@@ -11,21 +11,19 @@ class SplashView extends GetView<SplashController> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        // --- 1. GRADIENT BACKGROUND ---
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF558EFA), // Biru yang sedikit lebih terang di kiri atas
-              Color(0xFF2D6AE0), // Biru utama di tengah
-              Color(0xFF1A4596), // Biru gelap di kanan bawah
+              Color(0xFF558EFA), 
+              Color(0xFF2D6AE0),
+              Color(0xFF1A4596), 
             ],
           ),
         ),
         child: Stack(
           children: [
-            // ELEMEN DEKORATIF LINGKARAN KIRI ATAS
             Positioned(
               top: -80,
               left: -60,
@@ -34,12 +32,11 @@ class SplashView extends GetView<SplashController> {
                 height: 250,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.08), // Sangat transparan
+                  color: Colors.white.withOpacity(0.08), 
                 ),
               ),
             ),
 
-            // ELEMEN DEKORATIF LINGKARAN KANAN BAWAH
             Positioned(
               bottom: -100,
               right: -80,
@@ -48,7 +45,7 @@ class SplashView extends GetView<SplashController> {
                 height: 350,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.05), // Sangat transparan
+                  color: Colors.white.withOpacity(0.05),
                 ),
               ),
             ),
@@ -67,11 +64,10 @@ class SplashView extends GetView<SplashController> {
                   ),
                   const SizedBox(height: 24),
                   
-                  // Nama Aplikasi
                   const Text(
                     "Quizzin",
                     style: TextStyle(
-                      fontSize: 36, // Sedikit diperbesar
+                      fontSize: 36, 
                       fontWeight: FontWeight.bold, 
                       color: Colors.white,
                       letterSpacing: 1.2, 
@@ -79,7 +75,6 @@ class SplashView extends GetView<SplashController> {
                   ),
                   const SizedBox(height: 8),
                   
-                  // Slogan Aplikasi
                   const Text(
                     "Your Intellectual Study Partner", 
                     style: TextStyle(
@@ -92,7 +87,6 @@ class SplashView extends GetView<SplashController> {
                   
                   const SizedBox(height: 60),
                   
-                  // Indikator Loading
                   const CircularProgressIndicator(
                     color: Colors.white,
                     strokeWidth: 3, 

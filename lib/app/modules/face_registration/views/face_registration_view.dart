@@ -2,7 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import '../controllers/face_registration_controller.dart';
+import 'package:quizzin/app/modules/face_registration/controllers/face_registration_controller.dart';
 
 class FaceRegistrationView extends GetView<FaceRegistrationController> {
   const FaceRegistrationView({Key? key}) : super(key: key);
@@ -51,7 +51,6 @@ class FaceRegistrationView extends GetView<FaceRegistrationController> {
               ),
             ),
             
-            // BLOK LOADING OVERLAY: Aktif saat file foto profil sedang dikirim ke /profile/avatar
             if (controller.isLoading.value)
               Container(
                 color: Colors.black.withOpacity(0.5),
@@ -90,7 +89,6 @@ class FaceRegistrationView extends GetView<FaceRegistrationController> {
     );
   }
 
-  // LANGKAH 1: PICKER FOTO PROFIL
   Widget _buildProfilePicStep(FaceRegistrationController controller, Color primaryColor) {
     return Column(
       key: const ValueKey(0),
@@ -160,7 +158,6 @@ class FaceRegistrationView extends GetView<FaceRegistrationController> {
     }
   }
 
-  // LANGKAH 2: LIVE CAMERA SCANNING EMBEDDING FACE
   Widget _buildFaceIdStep(FaceRegistrationController controller, Color primaryColor) {
     // Menghapus Obx internal karena fungsi pemanggil di tingkat atas (body) sudah reactive
     Color borderColor = controller.faceRegistered.value ? Colors.green : primaryColor;
@@ -173,7 +170,6 @@ class FaceRegistrationView extends GetView<FaceRegistrationController> {
         const Text('Position your face within the frame to enable smart recognition features.', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: Colors.black54, height: 1.4)),
         const SizedBox(height: 40),
         
-        // Bingkai Kamera Melingkar
         Container(
           width: 220, height: 220,
           decoration: BoxDecoration(
@@ -226,7 +222,6 @@ class FaceRegistrationView extends GetView<FaceRegistrationController> {
         
         const SizedBox(height: 32),
         
-        // Tombol Trigger Ekstraksi Gambar Kuis Face ID (Bersih dari nested Obx)
         OutlinedButton.icon(
           onPressed: controller.faceRegistered.value || controller.isScanningFace.value 
               ? null 

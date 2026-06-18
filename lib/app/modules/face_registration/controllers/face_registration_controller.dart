@@ -1,15 +1,13 @@
 import 'dart:io';
 
 import 'package:camera/camera.dart';
-import 'package:dio/dio.dart'
-    as dio_pkg; // Prefix aman agar tidak bentrok dengan GetX
+import 'package:dio/dio.dart' as dio_pkg; 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:quizzin/app/services/api_service.dart';
+import 'package:quizzin/app/services/face_service.dart';
 
-import '../../../services/api_service.dart';
-import '../../../services/auth_service.dart';
-import '../../../services/face_service.dart';
 
 class FaceRegistrationController extends GetxController {
   final ImagePicker _picker = ImagePicker();
@@ -39,7 +37,6 @@ class FaceRegistrationController extends GetxController {
     super.onClose();
   }
 
-  // --- LANGKAH 1: PILIH & LANGSUNG UPLOAD FOTO PROFIL KE DATABASE ---
   Future<void> pickProfileImage(ImageSource source) async {
     try {
       isLoading.value = true;
@@ -53,7 +50,6 @@ class FaceRegistrationController extends GetxController {
         String filePath = pickedFile.path;
         String fileName = filePath.split('/').last;
 
-        // Bungkus file fisik gambar ke FormData Multipart Dio
         dio_pkg.FormData formData = dio_pkg.FormData.fromMap({
           "file": await dio_pkg.MultipartFile.fromFile(
             filePath,
@@ -62,13 +58,11 @@ class FaceRegistrationController extends GetxController {
           ),
         });
 
-        // Tembak langsung ke server. Token otomatis diisi oleh global interceptor ApiService
         await _apiService.dio.put(
           '/profile/avatar',
           data: formData,
         );
 
-        // Jika server sukses merespons 200 OK, update UI lokal
         profileImage.value = File(filePath);
 
         Get.snackbar(
@@ -161,7 +155,7 @@ class FaceRegistrationController extends GetxController {
 
       if (faceRect == null) {
         isScanningFace.value = false;
-        cameraController?.resumePreview(); // Resume kamera biar bisa scan ulang
+        cameraController?.resumePreview(); 
         Get.snackbar(
           'Face Not Detected',
           'Wajah tidak terdeteksi, silakan coba lagi',
@@ -178,7 +172,6 @@ class FaceRegistrationController extends GetxController {
       );
       final embedding = _faceService!.generateEmbedding(croppedFace);
 
-      // Tembak endpoint embedding wajah
       await _apiService.dio.post(
         '/auth/register-face',
         data: {'embedding': embedding},
