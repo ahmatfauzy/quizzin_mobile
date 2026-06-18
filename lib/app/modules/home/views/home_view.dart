@@ -5,7 +5,6 @@ import 'package:quizzin/app/modules/home/controllers/home_controller.dart';
 class HomeView extends GetView<HomeController> {
   const HomeView({Key? key}) : super(key: key);
 
-  // --- HELPER 1: Animasi Pop-Up Memantul (Bouncy) ---
   Widget _buildPopUpAnimation(Widget child, int delayMs) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
@@ -24,7 +23,6 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-  // --- HELPER 2: Animasi Meluncur dari Atas (Drop-Down) ---
   Widget _buildSlideDownAnimation(Widget child, int delayMs) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
@@ -43,7 +41,6 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-  // --- HELPER 3: Animasi Meluncur dari Bawah (Slide-Up) ---
   Widget _buildSlideUpAnimation(Widget child, int delayMs) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
@@ -104,7 +101,6 @@ class HomeView extends GetView<HomeController> {
         ],
       ),
       
-      // Tombol Tambah Materi / Kuis Baru
       floatingActionButton: Obx(() => controller.recentMaterials.isEmpty 
         ? const SizedBox.shrink() 
         : _buildPopUpAnimation(
@@ -136,14 +132,12 @@ class HomeView extends GetView<HomeController> {
             ),
             const SizedBox(height: 24),
             
-            // 2. Weekly Activity Grafik (Slide-Up)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0), 
               child: _buildSlideUpAnimation(_buildWeeklyActivity(), 400),
             ),
             const SizedBox(height: 32),
             
-            // 3. Header Recent Materials (Slide-Up)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: _buildSlideUpAnimation(
@@ -162,7 +156,6 @@ class HomeView extends GetView<HomeController> {
             ),
             const SizedBox(height: 12),
             
-            // 4. Konten Utama Daftar Dokumen atau Empty State (Slide-Up)
             Obx(() {
               Widget content = controller.recentMaterials.isEmpty 
                   ? _buildEmptyState() 

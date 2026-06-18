@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:dio/dio.dart' as dio_pkg;
-import 'package:file_picker/file_picker.dart'; // Wajib untuk memilih berkas kuis PDF
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quizzin/app/services/api_service.dart';
@@ -8,29 +8,23 @@ import 'package:quizzin/app/services/api_service.dart';
 class HomeController extends GetxController {
   final ApiService _apiService = ApiService();
 
-  // State loading utama halaman beranda saat pertama kali dibuka
   final isProfileLoading = true.obs;
-  // State loading indikator ketika proses upload PDF sedang berjalan
   final isUploadingDocument = false.obs;
 
-  // --- DATA REAKTIF USER ---
   final userName = ''.obs;
   final profilePicUrl = ''.obs;
   final streakDays = 0.obs;
   final xpPoints = 0.obs;
 
-  // --- STATE GAMIFIKASI DINAMIS BERBASIS XP ---
   final level = 1.obs;
   final levelProgress = 0.0.obs;
   final xpInCurrentLevel = 0.obs;
-  final xpPerLevel = 500; // Formula: Naik level setiap kelipatan 500 XP
+  final xpPerLevel = 500; 
 
   Timer? _autoRefreshTimer;
 
-  // --- RECENT MATERIALS (SINKRON DENGAN BACKEND /DOCUMENTS) ---
   final recentMaterials = <Map<String, dynamic>>[].obs;
 
-  // --- MOCK DATA GRAFIK AKTIVITAS MINGGUAN ---
   final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   final weeklyActivityData = <double>[0.4, 0.7, 1.0, 0.3, 0.6, 0.1, 0.0].obs;
   final selectedDayIndex = 2.obs;
@@ -38,11 +32,10 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchInitialData(); // Load data profil dan dokumen secara paralel
-    _startPeriodicRefresh(); // Nyalakan background polling tiap 5 detik
+    fetchInitialData();
+    _startPeriodicRefresh(); 
   }
 
-  // --- FUNGSI PARALEL LOAD DATA AWAL ---
   Future<void> fetchInitialData() async {
     isProfileLoading.value = true;
     try {
@@ -54,15 +47,13 @@ class HomeController extends GetxController {
     }
   }
 
-  // --- BACKGROUND POLLING (SINKRONISASI TIAP 5 DETIK) ---
   void _startPeriodicRefresh() {
     _autoRefreshTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       fetchUserData(silent: true);
-      fetchRealDocuments(); // Otomatis update status 'processing' -> 'completed' dari AI
+      fetchRealDocuments();
     });
   }
 
-  // --- AMBIL DATA PROFILE & OPTIMALISASI LEVEL ---
   Future<void> fetchUserData({bool silent = false}) async {
     if (!silent) isProfileLoading.value = true;
     try {
@@ -78,7 +69,6 @@ class HomeController extends GetxController {
       int totalXp = userData['xp_points'] ?? 0;
       xpPoints.value = totalXp;
 
-      // Kalkulasi matematika otomatisasi Level Gamifikasi
       level.value = (totalXp ~/ xpPerLevel) + 1;
       xpInCurrentLevel.value = totalXp % xpPerLevel;
       levelProgress.value = xpInCurrentLevel.value / xpPerLevel;
@@ -90,14 +80,12 @@ class HomeController extends GetxController {
     }
   }
 
-  // --- AMBIL DAFTAR DOKUMEN REAL (GET /documents) ---
   Future<void> fetchRealDocuments() async {
     try {
       final response = await _apiService.dio.get('/documents/');
       final responseData = response.data as Map<String, dynamic>;
       final List rawDocuments = responseData['documents'] ?? [];
 
-      // Petakan struktur JSON API backend ke dalam struktur reaktif UI View
       recentMaterials.value = rawDocuments.map((doc) {
         return {
           'id': doc['id'],
@@ -111,7 +99,7 @@ class HomeController extends GetxController {
           'time': _formatTimestamp(doc['created_at'] ?? ''),
           'status':
               doc['status'] ??
-              'processing', // pemantau status 'processing', 'completed', atau 'failed'
+              'processing', 
         };
       }).toList();
     } catch (e) {
@@ -142,19 +130,15 @@ class HomeController extends GetxController {
       String filePath = result.files.single.path!;
       String fileName = result.files.single.name;
 
-      // ====================================================================
-      // SOLUSI: Tambahkan key "title" sesuai dengan permintaan validasi API
-      // ====================================================================
       dio_pkg.FormData formData = dio_pkg.FormData.fromMap({
         "file": await dio_pkg.MultipartFile.fromFile(
           filePath, 
           filename: fileName,
           contentType: dio_pkg.DioMediaType('application', 'pdf'),
         ),
-        // Kita potong akhiran '.pdf' nya agar jadi Judul Dokumen yang bersih
+        
         "title": fileName.replaceAll('.pdf', '').replaceAll('.PDF', ''), 
       });
-      // ====================================================================
 
       await _apiService.dio.post(
         '/documents/upload',
@@ -199,7 +183,6 @@ class HomeController extends GetxController {
     }
   }
 
-  // Helper Cerdas: Memilih tema icon visual otomatis berdasarkan keyword nama file dokumen
   String _determineTheme(String title) {
     String lowerTitle = title.toLowerCase();
     if (lowerTitle.contains('vision') ||
@@ -211,10 +194,9 @@ class HomeController extends GetxController {
         lowerTitle.contains('text') ||
         lowerTitle.contains('speech'))
       return 'language';
-    return 'ml'; // Default tema Kecerdasan Buatan / Machine Learning
+    return 'ml';
   }
 
-  // Helper Format Jam: Merapikan format waktu buatan ISO Backend agar nyaman dibaca user
   String _formatTimestamp(String isoString) {
     if (isoString.isEmpty) return 'Baru saja';
     try {
@@ -229,7 +211,7 @@ class HomeController extends GetxController {
 
   void openProfile() async {
     await Get.toNamed('/profile');
-    fetchInitialData(); // Ambil data ter-update saat user kembali ke beranda dari layar profil
+    fetchInitialData(); 
   }
 
   void openMaterial() => Get.toNamed('/chapter-details');
@@ -238,7 +220,7 @@ class HomeController extends GetxController {
   @override
   void onClose() {
     _autoRefreshTimer
-        ?.cancel(); // Mencegah kebocoran memori (memory leak) saat ganti controller
+        ?.cancel(); 
     super.onClose();
   }
 }

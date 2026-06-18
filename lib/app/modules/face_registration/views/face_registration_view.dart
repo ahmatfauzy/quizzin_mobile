@@ -2,7 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:quizzin/app/modules/face_registration/controllers/face_registration_controller.dart';
+import '../controllers/face_registration_controller.dart';
 
 class FaceRegistrationView extends GetView<FaceRegistrationController> {
   const FaceRegistrationView({Key? key}) : super(key: key);
@@ -32,9 +32,11 @@ class FaceRegistrationView extends GetView<FaceRegistrationController> {
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
                   children: [
+                    // Indikator tahapan pengisian identitas
                     _buildStepper(controller.currentStep.value),
                     const SizedBox(height: 40),
 
+                    // Transisi animasi antar tahapan langkah
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
                       child: controller.currentStep.value == 0
@@ -49,8 +51,14 @@ class FaceRegistrationView extends GetView<FaceRegistrationController> {
               ),
             ),
             
+            // BLOK LOADING OVERLAY: Aktif saat file foto profil sedang dikirim ke /profile/avatar
             if (controller.isLoading.value)
-              Container(color: Colors.black.withOpacity(0.5), child: const Center(child: CircularProgressIndicator(color: primaryColor)))
+              Container(
+                color: Colors.black.withOpacity(0.5),
+                child: const Center(
+                  child: CircularProgressIndicator(color: primaryColor, strokeWidth: 4),
+                ),
+              )
           ],
         );
       }),
@@ -82,7 +90,7 @@ class FaceRegistrationView extends GetView<FaceRegistrationController> {
     );
   }
 
-  // LANGKAH 1: FOTO PROFIL 
+  // LANGKAH 1: PICKER FOTO PROFIL
   Widget _buildProfilePicStep(FaceRegistrationController controller, Color primaryColor) {
     return Column(
       key: const ValueKey(0),
@@ -118,7 +126,6 @@ class FaceRegistrationView extends GetView<FaceRegistrationController> {
     );
   }
 
-  // PERBAIKAN: Tambahkan kata kunci 'async' di sini
   void _showImagePickerBottomSheet(FaceRegistrationController controller, Color primaryColor) async {
     final ImageSource? source = await Get.bottomSheet<ImageSource>(
       Container(
@@ -153,8 +160,11 @@ class FaceRegistrationView extends GetView<FaceRegistrationController> {
     }
   }
 
-  // LANGKAH 2: LIVE CAMERA FACE ID 
+  // LANGKAH 2: LIVE CAMERA SCANNING EMBEDDING FACE
   Widget _buildFaceIdStep(FaceRegistrationController controller, Color primaryColor) {
+    // Menghapus Obx internal karena fungsi pemanggil di tingkat atas (body) sudah reactive
+    Color borderColor = controller.faceRegistered.value ? Colors.green : primaryColor;
+
     return Column(
       key: const ValueKey(1),
       children: [
@@ -163,68 +173,61 @@ class FaceRegistrationView extends GetView<FaceRegistrationController> {
         const Text('Position your face within the frame to enable smart recognition features.', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: Colors.black54, height: 1.4)),
         const SizedBox(height: 40),
         
-        // Bingkai Kamera Real-time
-        Obx(() {
-          Color borderColor = controller.faceRegistered.value ? Colors.green : primaryColor;
+        // Bingkai Kamera Melingkar
+        Container(
+          width: 220, height: 220,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle, 
+            border: Border.all(color: borderColor, width: 5),
+            boxShadow: [BoxShadow(color: borderColor.withOpacity(0.3), blurRadius: 20)],
+          ),
+          child: ClipOval(
+            child: !controller.isCameraInitialized.value 
+              ? const Center(child: CircularProgressIndicator(color: Color(0xFF0056FF)))
+              : Stack(
+                  children: [
+                    Positioned.fill(
+                      child: FittedBox(
+                        fit: BoxFit.cover,
+                        child: SizedBox(
+                          width: controller.cameraController!.value.previewSize?.height ?? 1,
+                          height: controller.cameraController!.value.previewSize?.width ?? 1,
+                          child: CameraPreview(controller.cameraController!),
+                        ),
+                      ),
+                    ),
 
-          return Container(
-            width: 220, height: 220,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle, 
-              border: Border.all(color: borderColor, width: 5),
-              boxShadow: [BoxShadow(color: borderColor.withOpacity(0.3), blurRadius: 20)],
-            ),
-            // ClipOval untuk memotong sudut-sudut kamera menjadi bulat
-            child: ClipOval(
-              child: !controller.isCameraInitialized.value 
-                ? Center(child: CircularProgressIndicator(color: primaryColor))
-                : Stack(
-                    // PERBAIKAN: Menghapus fit: StackFit.expand agar tidak gepeng
-                    children: [
+                    if (controller.isScanningFace.value)
                       Positioned.fill(
-                        child: FittedBox(
-                          fit: BoxFit.cover, // Ini kunci agar gambar di-crop proporsional
-                          child: SizedBox(
-                            // Membalik width/height dari previewSize karena sensor kamera defaultnya landscape
-                            width: controller.cameraController!.value.previewSize?.height ?? 1,
-                            height: controller.cameraController!.value.previewSize?.width ?? 1,
-                            child: CameraPreview(controller.cameraController!),
+                        child: Container(
+                          color: primaryColor.withOpacity(0.3),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(Icons.face_retouching_natural, color: Colors.white, size: 50),
+                              SizedBox(height: 8),
+                              Text('Detecting, Dont move!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 1.2)),
+                            ],
                           ),
                         ),
                       ),
 
-                      if (controller.isScanningFace.value)
-                        Positioned.fill(
-                          child: Container(
-                            color: primaryColor.withOpacity(0.3),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: const [
-                                Icon(Icons.face_retouching_natural, color: Colors.white, size: 50),
-                                SizedBox(height: 8),
-                                Text('Detecting, Dont move!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 1.5)),
-                              ],
-                            ),
-                          ),
+                    if (controller.faceRegistered.value)
+                      Positioned.fill(
+                        child: Container(
+                          color: Colors.green.withOpacity(0.5),
+                          child: const Icon(Icons.check_circle, color: Colors.white, size: 80),
                         ),
-
-                      if (controller.faceRegistered.value)
-                        Positioned.fill(
-                          child: Container(
-                            color: Colors.green.withOpacity(0.5),
-                            child: const Icon(Icons.check_circle, color: Colors.white, size: 80),
-                          ),
-                        ),
-                    ],
-                  ),
-            ),
-          );
-        }),
+                      ),
+                  ],
+                ),
+          ),
+        ),
         
         const SizedBox(height: 32),
         
-        // Tombol Start Scan
-        Obx(() => OutlinedButton.icon(
+        // Tombol Trigger Ekstraksi Gambar Kuis Face ID (Bersih dari nested Obx)
+        OutlinedButton.icon(
           onPressed: controller.faceRegistered.value || controller.isScanningFace.value 
               ? null 
               : () => controller.startRealtimeScan(),
@@ -236,7 +239,8 @@ class FaceRegistrationView extends GetView<FaceRegistrationController> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12)
           ),
-        )),
+        ),
+        
         const SizedBox(height: 32),
         Text(
           'Face recognition model by MCarlomagno\nLicensed under BSD-3-Clause',
@@ -257,8 +261,10 @@ class FaceRegistrationView extends GetView<FaceRegistrationController> {
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
-          disabledBackgroundColor: Colors.grey.shade300, disabledForegroundColor: Colors.grey.shade500,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0,
+          disabledBackgroundColor: Colors.grey.shade300, 
+          disabledForegroundColor: Colors.grey.shade500,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), 
+          elevation: 0,
         ),
         child: const Text('Complete Setup', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       ),

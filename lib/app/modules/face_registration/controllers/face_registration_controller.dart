@@ -1,7 +1,8 @@
 import 'dart:io';
 
 import 'package:camera/camera.dart';
-import 'package:dio/dio.dart';
+import 'package:dio/dio.dart'
+    as dio_pkg; // Prefix aman agar tidak bentrok dengan GetX
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -38,6 +39,7 @@ class FaceRegistrationController extends GetxController {
     super.onClose();
   }
 
+  // --- LANGKAH 1: PILIH & LANGSUNG UPLOAD FOTO PROFIL KE DATABASE ---
   Future<void> pickProfileImage(ImageSource source) async {
     try {
       isLoading.value = true;
@@ -48,11 +50,54 @@ class FaceRegistrationController extends GetxController {
       );
 
       if (pickedFile != null) {
-        profileImage.value = File(pickedFile.path);
+        String filePath = pickedFile.path;
+        String fileName = filePath.split('/').last;
+
+        // Bungkus file fisik gambar ke FormData Multipart Dio
+        dio_pkg.FormData formData = dio_pkg.FormData.fromMap({
+          "file": await dio_pkg.MultipartFile.fromFile(
+            filePath,
+            filename: fileName,
+            contentType: dio_pkg.DioMediaType('image', 'jpeg'),
+          ),
+        });
+
+        // Tembak langsung ke server. Token otomatis diisi oleh global interceptor ApiService
+        await _apiService.dio.put(
+          '/profile/avatar',
+          data: formData,
+        );
+
+        // Jika server sukses merespons 200 OK, update UI lokal
+        profileImage.value = File(filePath);
+
+        Get.snackbar(
+          'Upload Berhasil',
+          'Foto profil Anda telah sukses disimpan ke database.',
+          backgroundColor: const Color(0xFF0056FF),
+          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
+        );
+
+        // Lanjut otomatis ke langkah cetak Face ID
         goToFaceStep();
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to pick image: $e');
+      debugPrint('Gagal mengunggah foto profil: $e');
+      String errorMessage = 'Gagal menyimpan foto profil ke database.';
+
+      if (e is dio_pkg.DioException) {
+        final detail = e.response?.data?['detail'];
+        if (detail != null && detail is String) errorMessage = detail;
+      }
+
+      Get.snackbar(
+        'Gagal Menyimpan',
+        errorMessage,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade100,
+        colorText: Colors.red.shade900,
+      );
     } finally {
       isLoading.value = false;
     }
@@ -116,6 +161,7 @@ class FaceRegistrationController extends GetxController {
 
       if (faceRect == null) {
         isScanningFace.value = false;
+        cameraController?.resumePreview(); // Resume kamera biar bisa scan ulang
         Get.snackbar(
           'Face Not Detected',
           'Wajah tidak terdeteksi, silakan coba lagi',
@@ -126,14 +172,16 @@ class FaceRegistrationController extends GetxController {
         return;
       }
 
-      final croppedFace = await _faceService!.cropFaceFromFile(photoPath, faceRect);
+      final croppedFace = await _faceService!.cropFaceFromFile(
+        photoPath,
+        faceRect,
+      );
       final embedding = _faceService!.generateEmbedding(croppedFace);
 
-      final token = Get.find<AuthService>().token;
+      // Tembak endpoint embedding wajah
       await _apiService.dio.post(
         '/auth/register-face',
         data: {'embedding': embedding},
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       isScanningFace.value = false;
@@ -148,8 +196,9 @@ class FaceRegistrationController extends GetxController {
       );
     } catch (e) {
       isScanningFace.value = false;
+      cameraController?.resumePreview();
       String message = 'Gagal memproses wajah';
-      if (e is DioException) {
+      if (e is dio_pkg.DioException) {
         final detail = e.response?.data?['detail'];
         if (detail != null && detail is String) {
           message = detail;
@@ -185,6 +234,7 @@ class FaceRegistrationController extends GetxController {
         'Incomplete',
         'Harap selesaikan kedua langkah terlebih dahulu.',
         backgroundColor: Colors.orange.shade100,
+        snackPosition: SnackPosition.BOTTOM,
       );
     }
   }
