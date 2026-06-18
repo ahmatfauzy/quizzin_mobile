@@ -5,6 +5,7 @@ import 'package:quizzin/app/modules/home/controllers/home_controller.dart';
 class HomeView extends GetView<HomeController> {
   const HomeView({Key? key}) : super(key: key);
 
+  // --- HELPER 1: Animasi Pop-Up Memantul (Bouncy) ---
   Widget _buildPopUpAnimation(Widget child, int delayMs) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
@@ -23,6 +24,7 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
+  // --- HELPER 2: Animasi Meluncur dari Atas (Drop-Down) ---
   Widget _buildSlideDownAnimation(Widget child, int delayMs) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
@@ -41,6 +43,7 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
+  // --- HELPER 3: Animasi Meluncur dari Bawah (Slide-Up) ---
   Widget _buildSlideUpAnimation(Widget child, int delayMs) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
@@ -101,6 +104,7 @@ class HomeView extends GetView<HomeController> {
         ],
       ),
       
+      // Tombol Tambah Materi / Kuis Baru
       floatingActionButton: Obx(() => controller.recentMaterials.isEmpty 
         ? const SizedBox.shrink() 
         : _buildPopUpAnimation(
@@ -108,8 +112,13 @@ class HomeView extends GetView<HomeController> {
               onPressed: () => controller.addNewMaterial(),
               backgroundColor: const Color(0xFF0056FF),
               elevation: 4,
-              icon: const Icon(Icons.add, color: Colors.white),
-              label: const Text('New Quiz', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              icon: controller.isUploadingDocument.value 
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Icon(Icons.add, color: Colors.white),
+              label: Text(
+                controller.isUploadingDocument.value ? 'Uploading...' : 'New Quiz', 
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
+              ),
             ),
             800,
           )
@@ -120,18 +129,21 @@ class HomeView extends GetView<HomeController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 1. Welcome Card (Pop-Up Bouncy)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0), 
               child: _buildPopUpAnimation(_buildWelcomeCard(), 200),
             ),
             const SizedBox(height: 24),
             
+            // 2. Weekly Activity Grafik (Slide-Up)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0), 
               child: _buildSlideUpAnimation(_buildWeeklyActivity(), 400),
             ),
             const SizedBox(height: 32),
             
+            // 3. Header Recent Materials (Slide-Up)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: _buildSlideUpAnimation(
@@ -150,6 +162,7 @@ class HomeView extends GetView<HomeController> {
             ),
             const SizedBox(height: 12),
             
+            // 4. Konten Utama Daftar Dokumen atau Empty State (Slide-Up)
             Obx(() {
               Widget content = controller.recentMaterials.isEmpty 
                   ? _buildEmptyState() 
@@ -217,10 +230,7 @@ class HomeView extends GetView<HomeController> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Menampilkan Level Dinamis hasil kalkulasi
                     Obx(() => Text('Level ${controller.level.value} Scholar', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
-                    
-                    // PERBAIKAN: Menampilkan angka konkrit XP saat ini / Target XP berikutnya
                     Obx(() => Text(
                       '${controller.xpInCurrentLevel.value} / ${controller.xpPerLevel} XP (${(controller.levelProgress.value * 100).toInt()}%)', 
                       style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w500)
@@ -230,7 +240,6 @@ class HomeView extends GetView<HomeController> {
                 const SizedBox(height: 10),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  // Progress bar otomatis menyesuaikan rasio levelProgress yang reaktif
                   child: Obx(() => LinearProgressIndicator(value: controller.levelProgress.value, backgroundColor: Colors.white.withOpacity(0.2), valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFA5E08B)), minHeight: 8)),
                 ),
               ],
@@ -331,7 +340,6 @@ class HomeView extends GetView<HomeController> {
   Widget _buildRecentMaterialsVertical() {
     return Column(
       children: controller.recentMaterials.map((material) {
-        
         IconData iconData;
         Color bgColor;
         Color iconColor;
@@ -358,8 +366,13 @@ class HomeView extends GetView<HomeController> {
             iconColor = const Color(0xFFD32F2F); 
         }
 
+        bool isProcessing = material['status'] == 'processing';
+        bool isFailed = material['status'] == 'failed';
+
         return GestureDetector(
-          onTap: () => controller.openMaterial(),
+          onTap: isProcessing 
+              ? () => Get.snackbar('Mohon Tunggu', 'Dokumen masih diproses oleh sistem AI...', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.amber.shade50)
+              : () => controller.openMaterial(),
           child: Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
@@ -386,15 +399,22 @@ class HomeView extends GetView<HomeController> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(material['type'].toString(), style: const TextStyle(fontSize: 11, color: Colors.black54)),
+                          Text(
+                            isProcessing ? 'Processing by AI...' : (isFailed ? 'Failed to process' : material['type'].toString()), 
+                            style: TextStyle(
+                              fontSize: 11, 
+                              color: isProcessing ? Colors.orange.shade700 : (isFailed ? Colors.red : Colors.black54), 
+                              fontWeight: isProcessing ? FontWeight.bold : FontWeight.normal
+                            )
+                          ),
                           Text(material['time'].toString(), style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.w500)),
                         ],
                       ),
                       const SizedBox(height: 10),
                       LinearProgressIndicator(
-                        value: material['progress'] as double, 
+                        value: isProcessing ? null : (isFailed ? 0.0 : 1.0), 
                         backgroundColor: Colors.grey.shade200, 
-                        valueColor: AlwaysStoppedAnimation<Color>(iconColor), 
+                        valueColor: AlwaysStoppedAnimation<Color>(isFailed ? Colors.red : (isProcessing ? Colors.orange : iconColor)), 
                         minHeight: 5, 
                         borderRadius: BorderRadius.circular(3)
                       ),
