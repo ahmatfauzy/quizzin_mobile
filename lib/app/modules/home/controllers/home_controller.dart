@@ -88,7 +88,7 @@ class HomeController extends GetxController {
 
       recentMaterials.value = rawDocuments.map((doc) {
         return {
-          'id': doc['id'],
+          'id': doc['id'], 
           'title':
               doc['title'] ?? doc['original_filename'] ?? 'Untitled Document',
           'type': 'PDF Document',
@@ -214,7 +214,10 @@ class HomeController extends GetxController {
     fetchInitialData(); 
   }
 
-  void openMaterial() => Get.toNamed('/chapter-details');
+  void goToDocumentDetails(int docId) {
+    Get.toNamed('/chapter-details', arguments: docId);
+  }
+
   void openAllMaterials() => Get.toNamed('/all-materials');
 
   @override

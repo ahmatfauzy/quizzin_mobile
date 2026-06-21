@@ -9,7 +9,6 @@ class AllMaterialsController extends GetxController {
 
   final isLoading = true.obs;
 
-  // Master data seluruh materi dari API
   final allMaterials = <Map<String, dynamic>>[].obs;
   
   final filteredMaterials = <Map<String, dynamic>>[].obs;
@@ -19,13 +18,11 @@ class AllMaterialsController extends GetxController {
     super.onInit();
     fetchAllDocuments();
 
-    // Pasang listener pada searchController agar mendeteksi setiap ketikan user
     searchController.addListener(() {
       filterMaterials(searchController.text);
     });
   }
 
-  // --- AMBIL DAFTAR SELURUH DOKUMEN (GET /documents) ---
   Future<void> fetchAllDocuments() async {
     try {
       isLoading.value = true;
@@ -33,10 +30,9 @@ class AllMaterialsController extends GetxController {
       final responseData = response.data as Map<String, dynamic>;
       final List rawDocuments = responseData['documents'] ?? [];
 
-      // Mapping data mentah API ke struktur Map UI kuis kita
       final mappedData = rawDocuments.map((doc) {
         return {
-          'id': doc['id'],
+          'id': doc['id'], // ID unik fisik database aman tersimpan di sini
           'title': doc['title'] ?? doc['original_filename'] ?? 'Untitled Document',
           'type': 'PDF Document',
           'theme': _determineTheme(doc['title'] ?? doc['original_filename'] ?? ''),
@@ -48,7 +44,6 @@ class AllMaterialsController extends GetxController {
 
       allMaterials.assignAll(mappedData);
       
-      // Jalankan filter awal (biar semua data langsung muncul jika search bar kosong)
       filterMaterials(searchController.text);
 
     } catch (e) {
@@ -64,13 +59,10 @@ class AllMaterialsController extends GetxController {
     }
   }
 
-  // --- LOGIKA MESIN PENCARIAN LOKAL (SEARCH FILTER) ---
   void filterMaterials(String query) {
     if (query.trim().isEmpty) {
-      // Jika kolom pencarian kosong, tampilkan seluruh materi tanpa disaring
       filteredMaterials.assignAll(allMaterials);
     } else {
-      // Saring materi yang judulnya mengandung kata kunci pencarian (Case Insensitive)
       final lowercaseQuery = query.toLowerCase();
       final result = allMaterials.where((material) {
         final title = material['title'].toString().toLowerCase();
@@ -81,7 +73,6 @@ class AllMaterialsController extends GetxController {
     }
   }
 
-  // Helper: Pilih tema icon berdasarkan nama berkas
   String _determineTheme(String title) {
     String lowerTitle = title.toLowerCase();
     if (lowerTitle.contains('vision') || lowerTitle.contains('mata') || lowerTitle.contains('image')) return 'vision';
@@ -89,7 +80,6 @@ class AllMaterialsController extends GetxController {
     return 'ml';
   }
 
-  // Helper: Rapikan penulisan waktu ISO backend
   String _formatTimestamp(String isoString) {
     if (isoString.isEmpty) return 'Baru saja';
     try {
@@ -100,8 +90,8 @@ class AllMaterialsController extends GetxController {
     }
   }
 
-  void openMaterial() {
-    Get.toNamed('/chapter-details');
+  void goToDocumentDetails(int docId) {
+    Get.toNamed('/chapter-details', arguments: docId);
   }
 
   @override

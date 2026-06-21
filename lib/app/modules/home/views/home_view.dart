@@ -147,8 +147,7 @@ class HomeView extends GetView<HomeController> {
                     const Text('Recent Materials', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
                     Obx(() => controller.recentMaterials.isEmpty 
                       ? const SizedBox() 
-                      : TextButton(onPressed: () => controller.openAllMaterials(), child: const Text('See All', style: TextStyle(color: Color(0xFF0056FF), fontWeight: FontWeight.w600)))
-                    )
+                      : TextButton(onPressed: () => controller.openAllMaterials(), child: const Text('See All', style: TextStyle(color: Color(0xFF0056FF), fontWeight: FontWeight.w600))))
                   ],
                 ),
                 500,
@@ -240,15 +239,21 @@ class HomeView extends GetView<HomeController> {
           ),
           const SizedBox(height: 24),
           
-          SizedBox(
+          // PERBAIKAN: Beri pengondisian dinamis pada tombol Resume Lesson
+          Obx(() => SizedBox(
             width: double.infinity, height: 50,
             child: ElevatedButton.icon(
-              onPressed: () => controller.openMaterial(),
+              onPressed: controller.recentMaterials.isNotEmpty
+                  ? () => controller.goToDocumentDetails(controller.recentMaterials.first['id'])
+                  : () => controller.openAllMaterials(),
               icon: const Icon(Icons.play_circle_outline, color: Color(0xFF0A349E)),
-              label: const Text('Resume Lesson', style: TextStyle(color: Color(0xFF0A349E), fontWeight: FontWeight.bold, fontSize: 15)),
+              label: Text(
+                controller.recentMaterials.isNotEmpty ? 'Resume Lesson' : 'Explore Materials',
+                style: const TextStyle(color: Color(0xFF0A349E), fontWeight: FontWeight.bold, fontSize: 15)
+              ),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.white, elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25))),
             ),
-          )
+          ))
         ],
       ),
     );
@@ -274,59 +279,63 @@ class HomeView extends GetView<HomeController> {
           ),
           const SizedBox(height: 32),
           
-          SizedBox(
-            height: 140, 
-            child: Obx(() => Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: List.generate(controller.days.length, (index) {
-                
-                bool isSelected = controller.selectedDayIndex.value == index;
-                double barHeight = controller.weeklyActivityData[index] * 80; 
-                if (barHeight < 6) barHeight = 6; 
-
-                return GestureDetector(
-                  onTap: () => controller.selectDay(index),
-                  behavior: HitTestBehavior.opaque,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      AnimatedOpacity(
-                        opacity: isSelected ? 1.0 : 0.0,
-                        duration: const Duration(milliseconds: 200),
-                        child: Text(
-                          '${(controller.weeklyActivityData[index] * 100).toInt()}%',
-                          style: const TextStyle(fontSize: 11, color: Color(0xFF0056FF), fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeOutCubic,
-                        width: 32, 
-                        height: barHeight,
-                        decoration: BoxDecoration(
-                          color: isSelected ? const Color(0xFF0056FF) : const Color(0xFFE8F1FF),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        controller.days[index],
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                          color: isSelected ? const Color(0xFF0056FF) : Colors.grey.shade400,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }),
-            )),
-          ),
+          uiSizedBarGraph(),
         ],
       ),
+    );
+  }
+
+  Widget uiSizedBarGraph() {
+    return SizedBox(
+      height: 140, 
+      child: Obx(() => Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: List.generate(controller.days.length, (index) {
+          
+          bool isSelected = controller.selectedDayIndex.value == index;
+          double barHeight = controller.weeklyActivityData[index] * 80; 
+          if (barHeight < 6) barHeight = 6; 
+
+          return GestureDetector(
+            onTap: () => controller.selectDay(index),
+            behavior: HitTestBehavior.opaque,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                AnimatedOpacity(
+                  opacity: isSelected ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: Text(
+                    '${(controller.weeklyActivityData[index] * 100).toInt()}%',
+                    style: const TextStyle(fontSize: 11, color: Color(0xFF0056FF), fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOutCubic,
+                  width: 32, 
+                  height: barHeight,
+                  decoration: BoxDecoration(
+                    color: isSelected ? const Color(0xFF0056FF) : const Color(0xFFE8F1FF),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  controller.days[index],
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                    color: isSelected ? const Color(0xFF0056FF) : Colors.grey.shade400,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      )),
     );
   }
 
@@ -365,7 +374,7 @@ class HomeView extends GetView<HomeController> {
         return GestureDetector(
           onTap: isProcessing 
               ? () => Get.snackbar('Mohon Tunggu', 'Dokumen masih diproses oleh sistem AI...', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.amber.shade50)
-              : () => controller.openMaterial(),
+              : () => controller.goToDocumentDetails(material['id']),
           child: Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
