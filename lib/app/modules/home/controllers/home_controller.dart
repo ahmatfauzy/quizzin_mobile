@@ -3,6 +3,7 @@ import 'package:dio/dio.dart' as dio_pkg;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:quizzin/app/services/api_service.dart';
 
 class HomeController extends GetxController {
@@ -19,21 +20,23 @@ class HomeController extends GetxController {
   final level = 1.obs;
   final levelProgress = 0.0.obs;
   final xpInCurrentLevel = 0.obs;
-  final xpPerLevel = 500; 
+  final xpPerLevel = 500;
 
   Timer? _autoRefreshTimer;
-
   final recentMaterials = <Map<String, dynamic>>[].obs;
 
   final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   final weeklyActivityData = <double>[0.4, 0.7, 1.0, 0.3, 0.6, 0.1, 0.0].obs;
   final selectedDayIndex = 2.obs;
 
+  final lastReadDocumentId = RxnInt();
+
   @override
   void onInit() {
     super.onInit();
     fetchInitialData();
-    _startPeriodicRefresh(); 
+    loadLastReadDocument();
+    _startPeriodicRefresh();
   }
 
   Future<void> fetchInitialData() async {
@@ -45,6 +48,18 @@ class HomeController extends GetxController {
     } finally {
       isProfileLoading.value = false;
     }
+  }
+
+  Future<void> loadLastReadDocument() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? savedId = prefs.getInt('last_doc_id');
+    lastReadDocumentId.value = savedId;
+  }
+
+  Future<void> saveLastReadDocument(int docId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('last_doc_id', docId);
+    lastReadDocumentId.value = docId;
   }
 
   void _startPeriodicRefresh() {
@@ -97,9 +112,7 @@ class HomeController extends GetxController {
           ),
           'progress': doc['status'] == 'completed' ? 1.0 : 0.0,
           'time': _formatTimestamp(doc['created_at'] ?? ''),
-          'status':
-              doc['status'] ??
-              'processing', 
+          'status': doc['status'] ?? 'processing',
         };
       }).toList();
     } catch (e) {
@@ -120,11 +133,11 @@ class HomeController extends GetxController {
 
       isUploadingDocument.value = true;
       Get.snackbar(
-        'Mengunggah', 
-        'Sedang mengirim file PDF Anda ke server...', 
-        snackPosition: SnackPosition.BOTTOM, 
+        'Mengunggah',
+        'Sedang mengirim file PDF Anda ke server...',
+        snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.blue.shade50,
-        duration: const Duration(seconds: 2)
+        duration: const Duration(seconds: 2),
       );
 
       String filePath = result.files.single.path!;
@@ -132,52 +145,27 @@ class HomeController extends GetxController {
 
       dio_pkg.FormData formData = dio_pkg.FormData.fromMap({
         "file": await dio_pkg.MultipartFile.fromFile(
-          filePath, 
+          filePath,
           filename: fileName,
           contentType: dio_pkg.DioMediaType('application', 'pdf'),
         ),
-        
-        "title": fileName.replaceAll('.pdf', '').replaceAll('.PDF', ''), 
+
+        "title": fileName.replaceAll('.pdf', '').replaceAll('.PDF', ''),
       });
 
-      await _apiService.dio.post(
-        '/documents/upload',
-        data: formData,
-      );
+      await _apiService.dio.post('/documents/upload', data: formData);
 
       Get.snackbar(
-        'Berhasil', 
+        'Berhasil',
         'Dokumen berhasil diunggah! AI sedang mengekstrak kuis Anda.',
-        snackPosition: SnackPosition.TOP, 
-        backgroundColor: const Color(0xFF0056FF), 
-        colorText: Colors.white
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: const Color(0xFF0056FF),
+        colorText: Colors.white,
       );
-      
-      fetchRealDocuments();
 
+      fetchRealDocuments();
     } catch (e) {
       debugPrint('Gagal mengunggah dokumen: $e');
-      if (e is dio_pkg.DioException) {
-        debugPrint('===================================================');
-        debugPrint('DETAIL EROR VALIDASI SERVER (422):');
-        debugPrint('${e.response?.data}');
-        debugPrint('===================================================');
-        
-        String serverMessage = e.response?.data?['detail']?.toString() ?? 'Berkas tidak diizinkan oleh server.';
-        Get.snackbar(
-          'Gagal Mengunggah', 
-          serverMessage,
-          snackPosition: SnackPosition.BOTTOM, 
-          backgroundColor: Colors.red.shade100
-        );
-      } else {
-        Get.snackbar(
-          'Gagal Mengunggah', 
-          'Terjadi kesalahan koneksi atau berkas tidak diizinkan oleh server.',
-          snackPosition: SnackPosition.BOTTOM, 
-          backgroundColor: Colors.red.shade100
-        );
-      }
     } finally {
       isUploadingDocument.value = false;
     }
@@ -211,16 +199,26 @@ class HomeController extends GetxController {
 
   void openProfile() async {
     await Get.toNamed('/profile');
-    fetchInitialData(); 
+    fetchInitialData();
   }
 
-  void openMaterial() => Get.toNamed('/chapter-details');
-  void openAllMaterials() => Get.toNamed('/all-materials');
+  void goToDocumentDetails(int docId) async {
+    await saveLastReadDocument(docId);
+
+    Get.toNamed('/chapter-details', arguments: docId)?.then((_) {
+      loadLastReadDocument();
+    });
+  }
+
+  void openAllMaterials() {
+    Get.toNamed('/all-materials')?.then((_) {
+      loadLastReadDocument();
+    });
+  }
 
   @override
   void onClose() {
-    _autoRefreshTimer
-        ?.cancel(); 
+    _autoRefreshTimer?.cancel();
     super.onClose();
   }
 }
