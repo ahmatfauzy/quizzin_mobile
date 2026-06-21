@@ -9,7 +9,7 @@ class AllMaterialsView extends GetView<AllMaterialsController> {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
       duration: Duration(milliseconds: 450 + ((index % 6) * 100)),
-      curve: Curves.easeOutBack, 
+      curve: Curves.easeOutBack,
       builder: (context, value, childWidget) {
         return Transform.scale(
           scale: value,
@@ -66,7 +66,6 @@ class AllMaterialsView extends GetView<AllMaterialsController> {
             ),
           ),
 
-          // Konten Grid Utama
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value) {
@@ -162,6 +161,7 @@ class AllMaterialsView extends GetView<AllMaterialsController> {
 
                   return _buildGridItemAnimation(
                     GestureDetector(
+                      // AMAN SINKRON: Mengarahkan data ke fungsi controller baru kita
                       onTap: isProcessing
                           ? () => Get.snackbar(
                               'Mohon Tunggu',

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart' as dio_pkg;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart'; 
 import 'package:quizzin/app/services/api_service.dart';
 
 class AllMaterialsController extends GetxController {
@@ -32,7 +33,7 @@ class AllMaterialsController extends GetxController {
 
       final mappedData = rawDocuments.map((doc) {
         return {
-          'id': doc['id'], // ID unik fisik database aman tersimpan di sini
+          'id': doc['id'], 
           'title': doc['title'] ?? doc['original_filename'] ?? 'Untitled Document',
           'type': 'PDF Document',
           'theme': _determineTheme(doc['title'] ?? doc['original_filename'] ?? ''),
@@ -90,7 +91,14 @@ class AllMaterialsController extends GetxController {
     }
   }
 
-  void goToDocumentDetails(int docId) {
+  void goToDocumentDetails(int docId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('last_doc_id', docId);
+    } catch (e) {
+      debugPrint('Gagal merekam history baca di AllMaterials: $e');
+    }
+    
     Get.toNamed('/chapter-details', arguments: docId);
   }
 
