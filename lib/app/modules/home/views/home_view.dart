@@ -293,7 +293,6 @@ class HomeView extends GetView<HomeController> {
           ),
           const SizedBox(height: 24),
 
-          // Level Progress Box
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -495,7 +494,6 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-  // --- 3. KOMPONEN VERTIKAL LIST MATERI (RECENT MATERIALS) ---
   Widget _buildRecentMaterialsVertical() {
     const primaryColor = Color(0xFF0056FF);
 
