@@ -104,9 +104,8 @@ class ChapterDetailsController extends GetxController {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
+            Icon(Icons.warning_amber_rounded, color: Colors.red, size: 40),
             SizedBox(width: 10),
-            Text('Hapus Materi?', style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
         content: const Text(

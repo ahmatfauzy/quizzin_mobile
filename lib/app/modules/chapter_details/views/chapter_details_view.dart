@@ -120,7 +120,7 @@ class ChapterDetailsView extends GetView<ChapterDetailsController> {
                               size: 16,
                             ),
                             label: const Text(
-                              'Delete',
+                              '',
                               style: TextStyle(
                                 color: Colors.redAccent,
                                 fontSize: 12,
