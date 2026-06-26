@@ -1,59 +1,84 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class QuizResultController extends GetxController {
-  // --- Data Profil & Statistik ---
-  final userName = 'Bale'.obs;
-  final score = 85.obs;
-  final totalScore = 100.obs;
-  final xpEarned = 12.obs;
-  final dayStreak = 5.obs;
-  final readinessLevel = 0.85.obs; // 85%
+  final isLoading = true.obs;
 
-  // --- Data Recommended Focus ---
-  final List<Map<String, dynamic>> recommendedFocus = [
-    {
-      'title': 'Quantum Physics',
-      'description': 'Scores dropped 15% in recent quizzes. Read: "Advanced Quantum Mechanics" - Chapter 3: Wave Mechanics (pp. 45-62).',
-      'buttonText': 'Start Review',
-      'color': const Color(0xFF0056FF),
-      'icon': Icons.lightbulb_outline,
-    },
-    {
-      'title': 'Organic Chemistry',
-      'description': 'Struggling with Reaction Mechanisms. Study: "Organic Principles" - Chapter 4: Reaction Pathways (pp. 88-102).',
-      'buttonText': 'View Materials',
-      'color': const Color(0xFFD84315), // Orange
-      'icon': Icons.science_outlined,
-    },
-    {
-      'title': 'Statistics',
-      'description': 'Consistently missing Probability distributions. Review: "Statistical Analysis" - Chapter 2: Discrete Distributions (pp. 24-35).',
-      'buttonText': 'View Materials',
-      'color': const Color(0xFFD32F2F), // Merah
-      'icon': Icons.show_chart,
-    },
-  ];
+  int attemptId = 0;
+  String chapterTitle = '';
+  String difficulty = '';
+  int totalScore = 0;
+  int xpGained = 0;
+  int masteryUpdated = 0;
+  int timeTakenSeconds = 0;
+  String nextDifficultySuggestion = '';
+  
+  final results = <Map<String, dynamic>>[].obs;
 
-  // --- Data Incorrect Answers ---
-  final List<Map<String, dynamic>> incorrectAnswers = [
-    {
-      'question': 'Q7: Calculate the probability of independent events A and B.',
-      'reviewReq': 'Review Required: Chapter 4: Probability Distributions',
-    },
-    {
-      'question': 'Q14: Explain the wave-particle duality of light in the double-slit experiment.',
-      'reviewReq': 'Review Required: Chapter 6: Wave Mechanics',
-    },
-    {
-      'question': 'Q22: Identify the functional group in the provided organic molecule.',
-      'reviewReq': 'Review Required: Chapter 2: Functional Groups',
-    },
-  ];
+  @override
+  void onReady() {
+    super.onReady();
+    if (Get.arguments != null && Get.arguments is Map) {
+      _parseResultData(Get.arguments);
+    } else {
+      _handleEmptyData();
+    }
+  }
 
-  void backToDashboard() {
-    // Menghapus semua riwayat halaman kuis dan kembali ke dashboard
+  void _parseResultData(Map<String, dynamic> data) {
+    try {
+      attemptId = (data['attempt_id'] as num?)?.toInt() ?? 0;
+      chapterTitle = data['chapter_title'] ?? 'Evaluasi Bab';
+      difficulty = data['difficulty'] ?? 'medium';
+      totalScore = (data['total_score'] as num?)?.toInt() ?? 0;
+      xpGained = (data['xp_gained'] as num?)?.toInt() ?? 0;
+      masteryUpdated = (data['mastery_updated'] as num?)?.toInt() ?? 0;
+      timeTakenSeconds = (data['time_taken_seconds'] as num?)?.toInt() ?? 0;
+      // ====================================================================
+
+      nextDifficultySuggestion = data['next_difficulty_suggestion'] ?? 'medium';
+
+      final List rawResults = data['results'] ?? [];
+      results.assignAll(rawResults.map((r) {
+        final Map<String, dynamic> item = Map<String, dynamic>.from(r);
+        
+        if (item['score'] != null) {
+          item['score'] = (item['score'] as num).toInt();
+        }
+        return item;
+      }).toList());
+      
+      isLoading.value = false;
+    } catch (e) {
+      debugPrint('Eror parsing data kuis: $e');
+      _handleEmptyData();
+    }
+  }
+
+  void _handleEmptyData() {
+    isLoading.value = false;
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (Get.currentRoute == '/quiz-result') {
+        Get.offAllNamed('/home');
+        Get.snackbar(
+          'Data Kosong', 
+          'Gagal memuat riwayat hasil kuis dari server.', 
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange.shade50,
+        );
+      }
+    });
+  }
+
+  String get formattedTimeTaken {
+    int minutes = timeTakenSeconds ~/ 60;
+    int seconds = timeTakenSeconds % 60;
+    if (minutes == 0) return '$seconds detik';
+    return '$minutes m $seconds s';
+  }
+
+  void goToHome() {
     Get.offAllNamed('/home');
   }
 }
