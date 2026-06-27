@@ -198,8 +198,8 @@ class QuestionGridSheet extends StatelessWidget {
                 bool isAnswered = userAnswers[qId] != null && userAnswers[qId]!.trim().isNotEmpty;
                 bool isCurrent = currentIndex == index;
 
-                Color tileColor = const Color(0xFFFFEAEA); 
-                Color textColor = const Color.fromARGB(255, 220, 220, 38); 
+                Color tileColor = const Color.fromARGB(255, 255, 255, 250); 
+                Color textColor = const Color.fromARGB(255, 207, 207, 0); 
                 Border? tileBorder;
 
                 if (isAnswered) {
