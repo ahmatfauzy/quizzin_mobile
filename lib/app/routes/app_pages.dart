@@ -26,6 +26,12 @@ import '../modules/select_difficulty/bindings/select_difficulty_binding.dart';
 import '../modules/select_difficulty/views/select_difficulty_view.dart';
 import '../modules/splash/bindings/splash_binding.dart';
 import '../modules/splash/views/splash_view.dart';
+import '../modules/main_navigation/bindings/main_navigation_binding.dart';
+import '../modules/main_navigation/views/main_navigation_view.dart';
+import '../modules/scan/bindings/scan_binding.dart';
+import '../modules/scan/views/scan_view.dart';
+import '../modules/history/bindings/history_binding.dart';
+import '../modules/history/views/history_view.dart';
 
 part 'app_routes.dart';
 
@@ -106,6 +112,21 @@ class AppPages {
       name: _Paths.FACE_REGISTRATION,
       page: () => const FaceRegistrationView(),
       binding: FaceRegistrationBinding(),
+    ),
+    GetPage(
+      name: _Paths.MAIN_NAVIGATION,
+      page: () => const MainNavigationView(),
+      binding: MainNavigationBinding(),
+    ),
+    GetPage(
+      name: _Paths.SCAN,
+      page: () => const ScanView(),
+      binding: ScanBinding(),
+    ),
+    GetPage(
+      name: _Paths.HISTORY,
+      page: () => const HistoryView(),
+      binding: HistoryBinding(),
     ),
   ];
 }
