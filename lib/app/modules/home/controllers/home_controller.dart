@@ -11,6 +11,7 @@ class HomeController extends GetxController {
 
   final isProfileLoading = true.obs;
   final isUploadingDocument = false.obs;
+  final hasError = false.obs;
 
   final userName = ''.obs;
   final profilePicUrl = ''.obs;
@@ -41,10 +42,12 @@ class HomeController extends GetxController {
 
   Future<void> fetchInitialData() async {
     isProfileLoading.value = true;
+    hasError.value = false;
     try {
-      await Future.wait([fetchUserData(silent: true), fetchRealDocuments()]);
+      await Future.wait([fetchUserData(silent: false), fetchRealDocuments()]);
     } catch (e) {
       debugPrint('Error fetchInitialData: $e');
+      hasError.value = true;
     } finally {
       isProfileLoading.value = false;
     }
@@ -60,12 +63,22 @@ class HomeController extends GetxController {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('last_doc_id', docId);
     lastReadDocumentId.value = docId;
+
+    // Menyimpan id dokumen ke list 3 dokumen terakhir dibuka
+    List<String> openedIds = prefs.getStringList('last_opened_docs') ?? [];
+    String docIdStr = docId.toString();
+    openedIds.remove(docIdStr);
+    openedIds.insert(0, docIdStr);
+    if (openedIds.length > 3) {
+      openedIds = openedIds.sublist(0, 3);
+    }
+    await prefs.setStringList('last_opened_docs', openedIds);
   }
 
   void _startPeriodicRefresh() {
     _autoRefreshTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      fetchUserData(silent: true);
-      fetchRealDocuments();
+      fetchUserData(silent: true).catchError((e) {});
+      fetchRealDocuments().catchError((e) {});
     });
   }
 
@@ -89,7 +102,10 @@ class HomeController extends GetxController {
       levelProgress.value = xpInCurrentLevel.value / xpPerLevel;
     } catch (e) {
       debugPrint('Gagal sinkronisasi data user di Home: $e');
-      if (!silent) userName.value = 'Student';
+      if (!silent) {
+        userName.value = 'Student';
+        rethrow;
+      }
     } finally {
       if (!silent) isProfileLoading.value = false;
     }
@@ -101,11 +117,13 @@ class HomeController extends GetxController {
       final responseData = response.data as Map<String, dynamic>;
       final List rawDocuments = responseData['documents'] ?? [];
 
-      recentMaterials.value = rawDocuments.map((doc) {
+      final prefs = await SharedPreferences.getInstance();
+      final List<String> openedIds = prefs.getStringList('last_opened_docs') ?? [];
+
+      final mappedDocs = rawDocuments.map((doc) {
         return {
           'id': doc['id'],
-          'title':
-              doc['title'] ?? doc['original_filename'] ?? 'Untitled Document',
+          'title': doc['title'] ?? doc['original_filename'] ?? 'Untitled Document',
           'type': 'PDF Document',
           'theme': _determineTheme(
             doc['title'] ?? doc['original_filename'] ?? '',
@@ -115,8 +133,38 @@ class HomeController extends GetxController {
           'status': doc['status'] ?? 'processing',
         };
       }).toList();
+
+      List<Map<String, dynamic>> sortedDocs = [];
+      if (openedIds.isNotEmpty) {
+        for (String idStr in openedIds) {
+          int? id = int.tryParse(idStr);
+          if (id != null) {
+            Map<String, dynamic>? foundDoc;
+            for (var doc in mappedDocs) {
+              if (doc['id'] == id) {
+                foundDoc = doc;
+                break;
+              }
+            }
+            if (foundDoc != null) {
+              sortedDocs.add(foundDoc);
+            }
+          }
+        }
+        if (sortedDocs.length < 3) {
+          final remainingDocs = mappedDocs.where((doc) => !openedIds.contains(doc['id'].toString())).toList();
+          remainingDocs.sort((a, b) => b['id'].compareTo(a['id']));
+          sortedDocs.addAll(remainingDocs);
+        }
+      } else {
+        mappedDocs.sort((a, b) => b['id'].compareTo(a['id']));
+        sortedDocs = mappedDocs;
+      }
+
+      recentMaterials.value = sortedDocs.take(3).toList();
     } catch (e) {
       debugPrint('Gagal memuat list dokumen di Home: $e');
+      rethrow;
     }
   }
 
@@ -207,12 +255,14 @@ class HomeController extends GetxController {
 
     Get.toNamed('/chapter-details', arguments: docId)?.then((_) {
       loadLastReadDocument();
+      fetchRealDocuments();
     });
   }
 
   void openAllMaterials() {
     Get.toNamed('/all-materials')?.then((_) {
       loadLastReadDocument();
+      fetchRealDocuments();
     });
   }
 

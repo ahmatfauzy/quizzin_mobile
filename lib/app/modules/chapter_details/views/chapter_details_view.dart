@@ -61,127 +61,155 @@ class ChapterDetailsView extends GetView<ChapterDetailsController> {
         return Stack(
           children: [
             // Konten Utama Screen
-            if (!controller.isLoading.value)
-              SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Row Judul Dokumen & Tombol Hapus Materi
-                    _buildStaggeredSlideAnimation(
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // Source Document Chip Info
-                          Flexible(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Icons.picture_as_pdf,
-                                    size: 14,
-                                    color: primaryColor,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Flexible(
-                                    child: Text(
-                                      'SOURCE: ${controller.documentTitle.value}',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 0.5,
+            if (!controller.isLoading.value && !controller.hasError.value)
+              RefreshIndicator(
+                onRefresh: () async {
+                  if (controller.documentId != null) {
+                    await controller.fetchInitialData(controller.documentId!);
+                  }
+                },
+                color: primaryColor,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Row Judul Dokumen & Tombol Hapus Materi
+                      _buildStaggeredSlideAnimation(
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Source Document Chip Info
+                            Flexible(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.picture_as_pdf,
+                                      size: 14,
+                                      color: primaryColor,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Flexible(
+                                      child: Text(
+                                        'SOURCE: ${controller.documentTitle.value}',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 0.5,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
+                            const SizedBox(width: 12),
 
-                          // Tombol (Hapus Materi) di Sebelah Chip Judul
-                          TextButton.icon(
-                            onPressed: () => controller.confirmDeleteDocument(),
-                            icon: const Icon(
-                              Icons.delete_outline_rounded,
-                              color: Colors.redAccent,
-                              size: 16,
-                            ),
-                            label: const Text(
-                              '',
-                              style: TextStyle(
+                            // Tombol (Hapus Materi) di Sebelah Chip Judul
+                            TextButton.icon(
+                              onPressed: () => controller.confirmDeleteDocument(),
+                              icon: const Icon(
+                                Icons.delete_outline_rounded,
                                 color: Colors.redAccent,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
+                                size: 16,
+                              ),
+                              label: const Text(
+                                '',
+                                style: TextStyle(
+                                  color: Colors.redAccent,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
                               ),
                             ),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                            ),
+                          ],
+                        ),
+                        0,
+                      ),
+                      const SizedBox(height: 20),
+
+                      _buildStaggeredSlideAnimation(
+                        const Text(
+                          'Extracted Chapters',
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
                           ),
-                        ],
-                      ),
-                      0,
-                    ),
-                    const SizedBox(height: 20),
-
-                    _buildStaggeredSlideAnimation(
-                      const Text(
-                        'Extracted Chapters',
-                        style: TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
                         ),
+                        1,
                       ),
-                      1,
-                    ),
-                    const SizedBox(height: 12),
+                      const SizedBox(height: 12),
 
-                    _buildStaggeredSlideAnimation(
-                      const Text(
-                        "We've processed your document and identified key thematic sections. Select a chapter to engage with interactive concepts and track your mastery.",
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: Colors.black54,
-                          height: 1.5,
+                      _buildStaggeredSlideAnimation(
+                        const Text(
+                          "We've processed your document and identified key thematic sections. Select a chapter to engage with interactive concepts and track your mastery.",
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.black54,
+                            height: 1.5,
+                          ),
                         ),
+                        2,
                       ),
-                      2,
-                    ),
-                    const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                    // Render List Card Bab
-                    Column(
-                      children: List.generate(controller.chapters.length, (
-                        index,
-                      ) {
-                        final chapter = controller.chapters[index];
-                        return _buildStaggeredSlideAnimation(
-                          _buildChapterCard(chapter),
-                          index + 3,
-                        );
-                      }),
+                      // Render List Card Bab
+                      Column(
+                        children: List.generate(controller.chapters.length, (
+                          index,
+                        ) {
+                          final chapter = controller.chapters[index];
+                          return _buildStaggeredSlideAnimation(
+                            _buildChapterCard(chapter),
+                            index + 3,
+                          );
+                        }),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+            // ERROR STATE
+            if (!controller.isLoading.value && controller.hasError.value)
+              RefreshIndicator(
+                onRefresh: () async {
+                  if (controller.documentId != null) {
+                    await controller.fetchInitialData(controller.documentId!);
+                  }
+                },
+                color: primaryColor,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height - 150,
+                      child: _buildErrorState(context),
                     ),
                   ],
                 ),
@@ -452,5 +480,66 @@ class ChapterDetailsView extends GetView<ChapterDetailsController> {
         child: const Icon(Icons.lock_outline, color: Colors.grey, size: 20),
       );
     }
+  }
+
+  Widget _buildErrorState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.wifi_off_rounded,
+              size: 64,
+              color: Colors.redAccent,
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Koneksi Bermasalah',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1A365D),
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              'Gagal terhubung ke server atau waktu tunggu habis. Silakan periksa internetmu.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey, height: 1.5),
+            ),
+          ),
+          const SizedBox(height: 32),
+          ElevatedButton.icon(
+            onPressed: () {
+              if (controller.documentId != null) {
+                controller.fetchInitialData(controller.documentId!);
+              }
+            },
+            icon: const Icon(Icons.refresh),
+            label: const Text(
+              'Muat Ulang',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0056FF),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

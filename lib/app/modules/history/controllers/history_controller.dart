@@ -6,6 +6,7 @@ class HistoryController extends GetxController {
   final ApiService _apiService = ApiService();
   final isLoading = true.obs;
   final historyList = <Map<String, dynamic>>[].obs;
+  final hasError = false.obs;
 
   @override
   void onInit() {
@@ -15,6 +16,7 @@ class HistoryController extends GetxController {
 
   Future<void> fetchHistory() async {
     isLoading.value = true;
+    hasError.value = false;
     try {
       final response = await _apiService.dio.get('/quizzes/history');
       final data = response.data;
@@ -29,6 +31,7 @@ class HistoryController extends GetxController {
     } catch (e) {
       debugPrint('Error fetching history: $e');
       historyList.clear();
+      hasError.value = true;
     } finally {
       isLoading.value = false;
     }

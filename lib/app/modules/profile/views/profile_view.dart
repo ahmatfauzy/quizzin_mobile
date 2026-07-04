@@ -201,17 +201,29 @@ class ProfileView extends GetView<ProfileController> {
         ),
         centerTitle: true,
       ),
-      body: Obx(() {
-        if (controller.isFetchingProfile.value) {
-          // --- SKELETON ANIMASI ---
-          return PulsingSkeleton(child: _buildSkeletonUI());
-        }
-        if (controller.hasError.value) {
-          // --- UI ERROR (TIMEOUT/GAGAL) ---
-          return _buildErrorState();
-        }
-        return _buildActualContent(context, primaryColor);
-      }),
+      body: RefreshIndicator(
+        onRefresh: () => controller.fetchProfile(),
+        color: primaryColor,
+        child: Obx(() {
+          if (controller.isFetchingProfile.value) {
+            // --- SKELETON ANIMASI ---
+            return PulsingSkeleton(child: _buildSkeletonUI());
+          }
+          if (controller.hasError.value) {
+            // --- UI ERROR (TIMEOUT/GAGAL) ---
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(
+                  height: MediaQuery.of(context).size.height - 150,
+                  child: _buildErrorState(),
+                ),
+              ],
+            );
+          }
+          return _buildActualContent(context, primaryColor);
+        }),
+      ),
     );
   }
 
@@ -274,6 +286,7 @@ class ProfileView extends GetView<ProfileController> {
 
   Widget _buildActualContent(BuildContext context, Color primaryColor) {
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(24.0),
       child: Column(
         children: [

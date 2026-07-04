@@ -9,6 +9,7 @@ class AllMaterialsController extends GetxController {
   final searchController = TextEditingController();
 
   final isLoading = true.obs;
+  final hasError = false.obs;
 
   final allMaterials = <Map<String, dynamic>>[].obs;
   
@@ -27,6 +28,7 @@ class AllMaterialsController extends GetxController {
   Future<void> fetchAllDocuments() async {
     try {
       isLoading.value = true;
+      hasError.value = false;
       final response = await _apiService.dio.get('/documents/');
       final responseData = response.data as Map<String, dynamic>;
       final List rawDocuments = responseData['documents'] ?? [];
@@ -49,6 +51,7 @@ class AllMaterialsController extends GetxController {
 
     } catch (e) {
       debugPrint('Gagal memuat seluruh dokumen di AllMaterials: $e');
+      hasError.value = true;
       Get.snackbar(
         'Gagal Memuat', 
         'Terjadi kesalahan saat mengambil daftar dokumen.',
@@ -95,6 +98,16 @@ class AllMaterialsController extends GetxController {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('last_doc_id', docId);
+
+      // Menyimpan id dokumen ke list 3 dokumen terakhir dibuka
+      List<String> openedIds = prefs.getStringList('last_opened_docs') ?? [];
+      String docIdStr = docId.toString();
+      openedIds.remove(docIdStr);
+      openedIds.insert(0, docIdStr);
+      if (openedIds.length > 3) {
+        openedIds = openedIds.sublist(0, 3);
+      }
+      await prefs.setStringList('last_opened_docs', openedIds);
     } catch (e) {
       debugPrint('Gagal merekam history baca di AllMaterials: $e');
     }

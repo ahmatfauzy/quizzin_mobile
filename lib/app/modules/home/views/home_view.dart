@@ -102,73 +102,95 @@ class HomeView extends GetView<HomeController> {
               ),
       ),
 
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(vertical: 10.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: _buildPopUpAnimation(_buildWelcomeCard(), 200),
-            ),
-            const SizedBox(height: 24),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: _buildSlideUpAnimation(_buildWeeklyActivity(), 400),
-            ),
-            const SizedBox(height: 32),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: _buildSlideUpAnimation(
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Recent Materials',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    Obx(
-                      () => controller.recentMaterials.isEmpty
-                          ? const SizedBox()
-                          : TextButton(
-                              onPressed: () => controller.openAllMaterials(),
-                              child: const Text(
-                                'See All',
-                                style: TextStyle(
-                                  color: primaryColor,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                    ),
-                  ],
+      body: RefreshIndicator(
+        onRefresh: () => controller.fetchInitialData(),
+        color: primaryColor,
+        child: Obx(() {
+          if (controller.isProfileLoading.value) {
+            return const Center(
+              child: CircularProgressIndicator(color: primaryColor),
+            );
+          }
+          if (controller.hasError.value) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(
+                  height: MediaQuery.of(context).size.height - 150,
+                  child: _buildErrorState(context),
                 ),
-                500,
-              ),
+              ],
+            );
+          }
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(vertical: 10.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: _buildPopUpAnimation(_buildWelcomeCard(), 200),
+                ),
+                const SizedBox(height: 24),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: _buildSlideUpAnimation(_buildWeeklyActivity(), 400),
+                ),
+                const SizedBox(height: 32),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: _buildSlideUpAnimation(
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Recent Materials',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        Obx(
+                          () => controller.recentMaterials.isEmpty
+                              ? const SizedBox()
+                              : TextButton(
+                                  onPressed: () => controller.openAllMaterials(),
+                                  child: const Text(
+                                    'See All',
+                                    style: TextStyle(
+                                      color: primaryColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                        ),
+                      ],
+                    ),
+                    500,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                Obx(() {
+                  Widget content = controller.recentMaterials.isEmpty
+                      ? _buildEmptyState()
+                      : _buildRecentMaterialsVertical();
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: _buildSlideUpAnimation(content, 600),
+                  );
+                }),
+
+                const SizedBox(height: 80),
+              ],
             ),
-            const SizedBox(height: 12),
-
-            Obx(() {
-              Widget content = controller.recentMaterials.isEmpty
-                  ? _buildEmptyState()
-                  : _buildRecentMaterialsVertical();
-
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: _buildSlideUpAnimation(content, 600),
-              );
-            }),
-
-            const SizedBox(height: 80),
-          ],
-        ),
+          );
+        }),
       ),
     );
   }
@@ -653,6 +675,63 @@ class HomeView extends GetView<HomeController> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 elevation: 0,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.wifi_off_rounded,
+              size: 64,
+              color: Colors.redAccent,
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Koneksi Bermasalah',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1A365D),
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              'Gagal terhubung ke server atau waktu tunggu habis. Silakan periksa internetmu.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey, height: 1.5),
+            ),
+          ),
+          const SizedBox(height: 32),
+          ElevatedButton.icon(
+            onPressed: () => controller.fetchInitialData(),
+            icon: const Icon(Icons.refresh),
+            label: const Text(
+              'Muat Ulang',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0056FF),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),

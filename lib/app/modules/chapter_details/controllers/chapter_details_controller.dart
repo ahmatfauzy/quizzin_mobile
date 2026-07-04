@@ -8,6 +8,7 @@ class ChapterDetailsController extends GetxController {
 
   final isLoading = true.obs;
   final isDeleting = false.obs; 
+  final hasError = false.obs;
   int? documentId;
 
   // Data dokumen reaktif
@@ -40,12 +41,14 @@ class ChapterDetailsController extends GetxController {
   Future<void> fetchInitialData(int id) async {
     try {
       isLoading.value = true;
+      hasError.value = false;
       await Future.wait([
         fetchDocumentDetails(id),
         fetchUserProfile(),
       ]);
     } catch (e) {
       debugPrint('Error saat memuat data awal di ChapterDetails: $e');
+      hasError.value = true;
     } finally {
       isLoading.value = false;
     }

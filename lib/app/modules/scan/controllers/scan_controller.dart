@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:quizzin/app/services/api_service.dart';
 
 class ScanController extends GetxController {
@@ -189,6 +190,22 @@ class ScanController extends GetxController {
       final data = response.data;
       int newDocId = data['id'] ?? docId;
       Get.back(); // Tutup loading
+
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('last_doc_id', newDocId);
+
+        List<String> openedIds = prefs.getStringList('last_opened_docs') ?? [];
+        String docIdStr = newDocId.toString();
+        openedIds.remove(docIdStr);
+        openedIds.insert(0, docIdStr);
+        if (openedIds.length > 3) {
+          openedIds = openedIds.sublist(0, 3);
+        }
+        await prefs.setStringList('last_opened_docs', openedIds);
+      } catch (e) {
+        debugPrint('Gagal merekam history baca di Scan: $e');
+      }
       
       Get.toNamed('/chapter-details', arguments: newDocId)?.then((_) {
         _resumeScanning(1);
