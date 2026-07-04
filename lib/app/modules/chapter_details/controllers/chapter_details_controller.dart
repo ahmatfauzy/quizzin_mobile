@@ -150,7 +150,7 @@ class ChapterDetailsController extends GetxController {
         snackPosition: SnackPosition.TOP,
       );
 
-      Get.offAllNamed('/home');
+      Get.offAllNamed('/main-navigation');
 
     } catch (e) {
       debugPrint('Gagal menghapus dokumen materi: $e');

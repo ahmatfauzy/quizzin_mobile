@@ -185,17 +185,21 @@ class ProfileView extends GetView<ProfileController> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
+        leading: Navigator.canPop(context) ? IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
           onPressed: () => Get.back(),
-        ),
+        ) : null,
         title: const Text(
           'Profile',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
         ),
-        centerTitle: false,
+        centerTitle: true,
       ),
       body: Obx(() {
         if (controller.isFetchingProfile.value) {

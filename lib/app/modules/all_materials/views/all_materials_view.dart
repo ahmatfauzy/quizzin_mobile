@@ -30,10 +30,10 @@ class AllMaterialsView extends GetView<AllMaterialsController> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
+        leading: Navigator.canPop(context) ? IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
           onPressed: () => Get.back(),
-        ),
+        ) : null,
         title: const Text(
           'All Materials',
           style: TextStyle(

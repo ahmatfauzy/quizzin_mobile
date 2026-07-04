@@ -110,7 +110,7 @@ class ProfileController extends GetxController {
       if (Get.isSnackbarOpen) {
         
         Get.offAllNamed(
-          '/home',
+          '/main-navigation',
         ); 
       } else {
         Get.back();

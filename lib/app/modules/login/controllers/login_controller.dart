@@ -59,7 +59,7 @@ class LoginController extends GetxController {
       _apiService.setAuthToken(accessToken);
 
       if (hasFace) {
-        Get.offAllNamed('/home');
+        Get.offAllNamed('/main-navigation');
       } else {
         Get.offAllNamed('/face-registration');
       }
@@ -134,7 +134,7 @@ class LoginController extends GetxController {
       await _authService.saveToken(accessToken);
       _apiService.setAuthToken(accessToken);
 
-      Get.offAllNamed('/home');
+      Get.offAllNamed('/main-navigation');
     } on Exception catch (e) {
       String message = 'Gagal login dengan Face ID';
       if (e is DioException) {

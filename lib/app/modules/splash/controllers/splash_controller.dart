@@ -20,7 +20,7 @@ class SplashController extends GetxController {
         if (token != null) {
           apiService.setAuthToken(token);
         }
-        Get.offAllNamed('/home');
+        Get.offAllNamed('/main-navigation');
       } else {
         Get.offAllNamed('/login');
       }

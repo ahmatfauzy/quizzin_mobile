@@ -60,7 +60,7 @@ class QuizResultController extends GetxController {
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (Get.currentRoute == '/quiz-result') {
-        Get.offAllNamed('/home');
+        Get.offAllNamed('/main-navigation');
         Get.snackbar(
           'Data Kosong', 
           'Gagal memuat riwayat hasil kuis dari server.', 
@@ -79,6 +79,6 @@ class QuizResultController extends GetxController {
   }
 
   void goToHome() {
-    Get.offAllNamed('/home');
+    Get.offAllNamed('/main-navigation');
   }
 }

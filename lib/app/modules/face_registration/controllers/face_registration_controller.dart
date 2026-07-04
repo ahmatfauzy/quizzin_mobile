@@ -221,7 +221,7 @@ class FaceRegistrationController extends GetxController {
 
   void finishRegistration() {
     if (profileImage.value != null && faceRegistered.value) {
-      Get.offAllNamed('/home');
+      Get.offAllNamed('/main-navigation');
     } else {
       Get.snackbar(
         'Incomplete',

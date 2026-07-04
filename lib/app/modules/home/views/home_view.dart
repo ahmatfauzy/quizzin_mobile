@@ -68,39 +68,6 @@ class HomeView extends GetView<HomeController> {
           0,
         ),
         centerTitle: true,
-        actions: [
-          _buildSlideDownAnimation(
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: GestureDetector(
-                onTap: () => controller.openProfile(),
-                child: Obx(() {
-                  if (controller.isProfileLoading.value) {
-                    return const SizedBox(
-                      width: 32,
-                      height: 32,
-                      child: Padding(
-                        padding: EdgeInsets.all(4.0),
-                        child: CircularProgressIndicator(
-                          color: primaryColor,
-                          strokeWidth: 2.5,
-                        ),
-                      ),
-                    );
-                  }
-                  return CircleAvatar(
-                    radius: 16,
-                    backgroundColor: Colors.grey.shade300,
-                    backgroundImage: NetworkImage(
-                      controller.profilePicUrl.value,
-                    ),
-                  );
-                }),
-              ),
-            ),
-            150,
-          ),
-        ],
       ),
 
       floatingActionButton: Obx(
