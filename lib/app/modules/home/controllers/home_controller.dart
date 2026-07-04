@@ -44,7 +44,11 @@ class HomeController extends GetxController {
     isProfileLoading.value = true;
     hasError.value = false;
     try {
-      await Future.wait([fetchUserData(silent: false), fetchRealDocuments()]);
+      await Future.wait([
+        fetchUserData(silent: false),
+        fetchRealDocuments(),
+        fetchWeeklyActivity(),
+      ]);
     } catch (e) {
       debugPrint('Error fetchInitialData: $e');
       hasError.value = true;
@@ -79,6 +83,7 @@ class HomeController extends GetxController {
     _autoRefreshTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       fetchUserData(silent: true).catchError((e) {});
       fetchRealDocuments().catchError((e) {});
+      fetchWeeklyActivity().catchError((e) {});
     });
   }
 
@@ -264,6 +269,52 @@ class HomeController extends GetxController {
       loadLastReadDocument();
       fetchRealDocuments();
     });
+  }
+
+  Future<void> fetchWeeklyActivity() async {
+    try {
+      final response = await _apiService.dio.get('/quizzes/history');
+      final data = response.data;
+      List<dynamic> attempts = [];
+      if (data is Map && data['attempts'] is List) {
+        attempts = data['attempts'];
+      } else if (data is List) {
+        attempts = data;
+      }
+
+      final activityCounts = List<int>.filled(7, 0);
+      final now = DateTime.now();
+      final mondayOffset = now.weekday - 1;
+      final startOfWeek = DateTime(now.year, now.month, now.day).subtract(Duration(days: mondayOffset));
+      final endOfWeek = startOfWeek.add(const Duration(days: 7));
+
+      for (var attempt in attempts) {
+        final completedAtStr = attempt['completed_at'];
+        if (completedAtStr != null && completedAtStr.toString().isNotEmpty) {
+          try {
+            final completedAt = DateTime.parse(completedAtStr.toString()).toLocal();
+            if (completedAt.isAfter(startOfWeek.subtract(const Duration(seconds: 1))) && 
+                completedAt.isBefore(endOfWeek)) {
+              int dayIndex = completedAt.weekday - 1;
+              if (dayIndex >= 0 && dayIndex < 7) {
+                activityCounts[dayIndex]++;
+              }
+            }
+          } catch (e) {
+            debugPrint('Gagal parse tanggal completed_at: $e');
+          }
+        }
+      }
+
+      const dailyTarget = 2;
+      for (int i = 0; i < 7; i++) {
+        weeklyActivityData[i] = (activityCounts[i] / dailyTarget).clamp(0.0, 1.0);
+      }
+
+      selectedDayIndex.value = now.weekday - 1;
+    } catch (e) {
+      debugPrint('Gagal memuat weekly activity: $e');
+    }
   }
 
   @override

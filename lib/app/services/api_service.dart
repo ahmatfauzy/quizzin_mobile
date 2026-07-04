@@ -41,6 +41,21 @@ class ApiService {
         handler.next(options);
       },
       onError: (error, handler) {
+        if (error.response?.statusCode == 401) {
+          try {
+            if (Get.isRegistered<AuthService>()) {
+              final authService = Get.find<AuthService>();
+              authService.clearAuth();
+            }
+          } catch (e) {
+            print('Gagal membersihkan token kedaluwarsa: $e');
+          }
+          Future.microtask(() {
+            if (Get.currentRoute != '/login') {
+              Get.offAllNamed('/login');
+            }
+          });
+        }
         handler.next(error);
       },
     ));
